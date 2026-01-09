@@ -33,7 +33,8 @@ namespace Grader_Test_APP_v2._0
         {
             None,
             GNSS,
-            Radio
+            Radio,
+            FirmwareUpgrade
         }
 
         private ActiveTest _currentTest = ActiveTest.None;
@@ -46,6 +47,12 @@ namespace Grader_Test_APP_v2._0
         // Firmware constants
         const byte FW_TYPE_APP = 0xAA;
         const byte FW_FILE_BIN = 0x11;
+
+        private void AttachRxHandler()
+        {
+            serialport1.DataReceived -= SerialPort_DataReceived;
+            serialport1.DataReceived += SerialPort_DataReceived;
+        }
 
 
         //CRC 16 table 
@@ -180,7 +187,6 @@ namespace Grader_Test_APP_v2._0
                 label_fwHeaderCRC.Text = "Fw Header CRC:";
                 label_FwCalculatedCRC.Text = "Fw Calculated CRC:";
                 label_BinStatus.Text = "Status:";
-                StopAllTests();
 
             });
         }
@@ -250,7 +256,8 @@ namespace Grader_Test_APP_v2._0
                     serialport1.WriteTimeout = 1000;
 
                     serialport1.Open();
-                    serialport1.DataReceived += SerialPort_DataReceived;
+                    AttachRxHandler();
+
 
 
                     UI(() =>
@@ -295,9 +302,7 @@ namespace Grader_Test_APP_v2._0
 
             button_upgrade.Enabled = firmwareData != null;
         }
-
-
-
+        
         //send firmware function
         private bool send_firmware()
         {
@@ -319,13 +324,18 @@ namespace Grader_Test_APP_v2._0
             UpdateStatus("Starting firmware update...", 0);
             progressBar.Value = 0;
 
+
+            _currentTest = ActiveTest.FirmwareUpgrade;
+
+            // HARD isolation
             serialport1.DataReceived -= SerialPort_DataReceived;
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
+            
+
             // START PACKET
             byte[] START_PACKET = { 0x24, 0x01, 0x01, 0x00, 0x00, 0x02, 0x23 };
-
             serialport1.DiscardInBuffer();
 
             UpdateStatus("Sending START packet...", 0);
@@ -489,7 +499,12 @@ namespace Grader_Test_APP_v2._0
                     MessageBoxIcon.Information
                 );
             });
-            serialport1.DataReceived += SerialPort_DataReceived;
+            _currentTest = ActiveTest.None;
+
+            serialport1.DiscardInBuffer();
+            serialport1.DiscardOutBuffer();
+
+            AttachRxHandler();
             return true;
         }
 
@@ -670,11 +685,11 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
 
             StopAllTests();
-
+            AttachRxHandler();
             rtbLogs.Clear();
             _deviceStatusReceived = false;
             _currentTest = ActiveTest.GNSS;
-            serialport1.DataReceived += SerialPort_DataReceived;
+            
 
             AppendLog("GNSS TEST STARTED", LogLevel.INFO);
                
@@ -687,11 +702,11 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
 
             StopAllTests();
-
+            AttachRxHandler();
             rtbLogs.Clear();
             _radioStatusReceived = false;
             _currentTest = ActiveTest.Radio;
-            serialport1.DataReceived += SerialPort_DataReceived;
+            
 
             AppendLog("RADIO TEST STARTED", LogLevel.INFO);
 
@@ -741,14 +756,17 @@ namespace Grader_Test_APP_v2._0
         {
             try
             {
-                _rxBuffer.Append(serialport1.ReadExisting());
+                string data = serialport1.ReadExisting();
+
+                if (_currentTest == ActiveTest.FirmwareUpgrade)
+                    return; // drain only, do not parse
+
+                _rxBuffer.Append(data);
                 ProcessRxBuffer();
             }
-            catch (Exception ex)
-            {
-                AppendLog("Read error: " + ex.Message, LogLevel.ERROR);
-            }
+            catch { }
         }
+
 
         // Rx buffer processing funstion
         private void ProcessRxBuffer()
@@ -937,10 +955,12 @@ namespace Grader_Test_APP_v2._0
         private void StopAllTests()
         {
             _currentTest = ActiveTest.None;
-
             _deviceStatusReceived = false;
             _radioStatusReceived = false;
-            serialport1.DataReceived += SerialPort_DataReceived;
+
+            // ensure clean RX state
+            serialport1.DataReceived -= SerialPort_DataReceived;
+            serialport1.DiscardInBuffer();
         }
 
         // append log function with log level colors
