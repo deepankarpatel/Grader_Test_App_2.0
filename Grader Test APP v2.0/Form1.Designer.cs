@@ -72,8 +72,8 @@
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
-            panel4.SuspendLayout();
             tabPage_test_device.SuspendLayout();
+            panel4.SuspendLayout();
             SuspendLayout();
             // 
             // tab_all_components
@@ -526,6 +526,7 @@
             button_constellation_test.TabIndex = 4;
             button_constellation_test.Text = "Test Constellation";
             button_constellation_test.UseVisualStyleBackColor = false;
+            button_constellation_test.Click += button_constellation_test_Click;
             // 
             // button_radio_test
             // 
@@ -560,7 +561,7 @@
             // rtbLogs
             // 
             rtbLogs.BackColor = Color.FromArgb(34, 34, 34);
-            rtbLogs.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            rtbLogs.Font = new Font("Segoe UI Semibold", 12.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             rtbLogs.ForeColor = Color.FromArgb(19, 154, 14);
             rtbLogs.Location = new Point(251, 8);
             rtbLogs.Name = "rtbLogs";
