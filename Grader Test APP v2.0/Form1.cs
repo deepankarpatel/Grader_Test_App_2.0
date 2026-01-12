@@ -732,7 +732,7 @@ namespace Grader_Test_APP_v2._0
 
         private void SendRadioCommand()
         {
-            SendCommand("#9,4,4340250,TRIMMK3-19200,M,1*49\r\n", "CMD 9 sent");
+            SendCommand("#9,4,4340250,TRIMMK3-19200,M,1*49\r\n", "CMD 9 sent Please wait...");
         }
 
         // send command helper function
@@ -929,9 +929,9 @@ namespace Grader_Test_APP_v2._0
                 string txPower = f[4];
                 int direction = int.Parse(f[5]);
 
-                AppendLog($"Frequency        : {frequency} Hz", LogLevel.INFO);
-                AppendLog($"Protocol         : {protocol}", LogLevel.INFO);
-                AppendLog($"TX Power         : {txPower}", LogLevel.INFO);
+                AppendLog($"Frequency : {frequency} Hz", LogLevel.INFO);
+                AppendLog($"Protocol : {protocol}", LogLevel.INFO);
+                AppendLog($"TX Power : {txPower}", LogLevel.INFO);
 
                 string dirText = direction switch
                 {
@@ -941,7 +941,7 @@ namespace Grader_Test_APP_v2._0
                     _ => "Unknown"
                 };
 
-                AppendLog($"Direction        : {dirText}", LogLevel.INFO);
+                AppendLog($"Direction : {dirText}", LogLevel.INFO);
                 AppendLog("========================", LogLevel.INFO);
                 return;
             }
@@ -950,6 +950,7 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"Unknown CMD-9 format (LEN={len})", LogLevel.WARNING);
             AppendLog("========================", LogLevel.INFO);
         }
+
 
         // stop all tests function function, stop all test before starting a new one
         private void StopAllTests()

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             tab_all_components = new TabControl();
             tabPage_frimware = new TabPage();
             panel1 = new Panel();
@@ -71,8 +72,8 @@
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
-            tabPage_test_device.SuspendLayout();
             panel4.SuspendLayout();
+            tabPage_test_device.SuspendLayout();
             SuspendLayout();
             // 
             // tab_all_components
@@ -575,7 +576,8 @@
             BackColor = Color.FromArgb(17, 17, 17);
             ClientSize = new Size(998, 678);
             Controls.Add(tab_all_components);
-            FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "GNSS Test Tool v1.0";
