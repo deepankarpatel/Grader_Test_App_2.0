@@ -51,6 +51,7 @@ namespace Grader_Test_APP_v2._0
         const byte FW_TYPE_APP = 0xAA;
         const byte FW_FILE_BIN = 0x11;
 
+        // DataReceived event handler
         private void AttachRxHandler()
         {
             serialport1.DataReceived -= SerialPort_DataReceived;
@@ -58,7 +59,7 @@ namespace Grader_Test_APP_v2._0
         }
         private int _lastLoggedFwPercent = -1;
 
-        //CRC 16 table 
+        // CRC16 table for checksum calculation
         static readonly ushort[] crc16_table = new ushort[]
     {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
@@ -196,6 +197,7 @@ namespace Grader_Test_APP_v2._0
             });
         }
 
+        // OTA mode button on click
         private void button_OTA_mode_Click(object sender, EventArgs e)
         {
 
@@ -262,10 +264,7 @@ namespace Grader_Test_APP_v2._0
                     serialport1.WriteTimeout = 1000;
 
                     serialport1.Open();
-                    AttachRxHandler();
-
-
-
+                    AttachRxHandler(); // attach data received handler
 
                     UI(() =>
                     {
@@ -284,7 +283,7 @@ namespace Grader_Test_APP_v2._0
                         comboBox_device.Enabled = false;
                     });
 
-                    LogConnectionInfo(); // log
+                    LogConnectionInfo(); // log connection info
                 }
 
             }
@@ -303,7 +302,7 @@ namespace Grader_Test_APP_v2._0
         {
             reset();
         }
-
+        //browse file button on click
         private void button_browse_file_Click(object sender, EventArgs e)
         {
             firmwareData = LoadFirmwareFromFile();
@@ -311,20 +310,18 @@ namespace Grader_Test_APP_v2._0
             button_upgrade.Enabled = firmwareData != null;
         }
 
-
-
         //send firmware function
         private bool send_firmware()
         {
+            // Reset last logged percent
             _lastLoggedFwPercent = -1;
             AppendLog("FIRMWARE UPGRADE STARTED", LogLevel.INFO); // log
 
-
+            // Load firmware data
             if (firmwareData == null) return false;
-
+            // Firmware parameters
             ushort fwId = 0x0001;
 
-            //load the full bin file here
             byte[] firmwarePayload = firmwareData;   // FULL BIN
             uint fwLength = (uint)firmwarePayload.Length;
 
@@ -348,8 +345,6 @@ namespace Grader_Test_APP_v2._0
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
-
-
             // START PACKET
             byte[] START_PACKET = { 0x24, 0x01, 0x01, 0x00, 0x00, 0x02, 0x23 };
             serialport1.DiscardInBuffer();
@@ -360,6 +355,7 @@ namespace Grader_Test_APP_v2._0
 
             AppendLog("Sending START packet", LogLevel.INFO); // log
 
+            // Send START packet
             serialport1.Write(START_PACKET, 0, START_PACKET.Length);
 
             if (!WaitForUpdateResponse(5000))
@@ -373,6 +369,7 @@ namespace Grader_Test_APP_v2._0
             // HEADER PACKET
             ushort fwChk16 = CalculateCRC16(firmwareData);
 
+            // payload = FW_TYPE + FILE_TYPE + FW_ID + FW_LENGTH + FW_CHK16
             List<byte> payload = new List<byte>();
             payload.Add(FW_TYPE_APP);        // 0xAA
             payload.Add(FW_FILE_BIN);        // 0x11
@@ -394,6 +391,7 @@ namespace Grader_Test_APP_v2._0
             foreach (byte b in payload)
                 checksum += b;
 
+            // Construct HEADER packet
             List<byte> headerPacket = new List<byte>();
             headerPacket.Add(0x24);          // STX
             headerPacket.Add(0x02);          // CMD
@@ -403,10 +401,12 @@ namespace Grader_Test_APP_v2._0
             headerPacket.Add((byte)(checksum & 0xFF));
             headerPacket.Add(0x23);          // ETX
 
+            // progress bar update
             UpdateStatus("Sending firmware header...", 0);
             Application.DoEvents();
             AppendLog("Sending firmware HEADER packet", LogLevel.INFO); // log
 
+            // Send HEADER packet
             serialport1.Write(headerPacket.ToArray(), 0, headerPacket.Count);
 
             if (!WaitForUpdateResponse())
@@ -423,6 +423,7 @@ namespace Grader_Test_APP_v2._0
 
             while (offset < firmwareData.Length)
             {
+                // Determine chunk size
                 int size = Math.Min(CHUNK, firmwareData.Length - offset);
 
                 // payload = CMD + LEN + DATA
@@ -431,10 +432,12 @@ namespace Grader_Test_APP_v2._0
                 dataPayload.Add((byte)size);    // LEN
                 dataPayload.AddRange(firmwareData.Skip(offset).Take(size));
 
+                // Calculate checksum
                 ushort dataChecksum = 0;
                 foreach (byte b in dataPayload)
                     dataChecksum += b;
 
+                // Construct DATA packet
                 List<byte> dataPacket = new List<byte>();
                 dataPacket.Add(0x24);           // STX
                 dataPacket.AddRange(dataPayload);
@@ -474,9 +477,10 @@ namespace Grader_Test_APP_v2._0
 
                 UI(() =>
                 {
+                    // Calculate percentage
                     int percent = (int)(offset * 100 / firmwareData.Length);
 
-                    // Update UI every loop (fine)
+                    // Update UI every loop 
                     UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
 
                     // Log ONLY when percent changes AND is multiple of 10
@@ -494,7 +498,7 @@ namespace Grader_Test_APP_v2._0
 
                 Thread.Sleep(50);
             }
-
+            //progress bar update
             UpdateStatus("Finalizing update...", 100);
             Application.DoEvents();
 
@@ -504,6 +508,7 @@ namespace Grader_Test_APP_v2._0
 
             AppendLog("Sending END packet", LogLevel.INFO); // log
 
+            // Send END packet
             serialport1.Write(END_PACKET, 0, END_PACKET.Length);
             if (!WaitForUpdateResponse())
             {
@@ -512,8 +517,10 @@ namespace Grader_Test_APP_v2._0
                 reset();
                 return false;
             }
-
+            
             AppendLog("Sending UPDATE packet (finalizing firmware)", LogLevel.INFO); // log
+
+            // Send UPDATE packet
             serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
             if (!WaitForUpdateResponse(40000))
             {
@@ -522,12 +529,14 @@ namespace Grader_Test_APP_v2._0
                 reset();
                 return false;
             }
+
             //progress bar update
             UpdateStatus("Update complete", 100);
             Application.DoEvents();
 
             UI(() =>
             {
+                // Final UI update
                 lable_dataPackets_Update.Text = "Upgrade successful";
                 lable_progressBar_Percentage.Text = "100%";
                 MessageBox.Show(
@@ -548,7 +557,7 @@ namespace Grader_Test_APP_v2._0
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
-            AttachRxHandler();
+            AttachRxHandler(); // re-attach data received handler
             return true;
         }
 
@@ -562,10 +571,12 @@ namespace Grader_Test_APP_v2._0
             lable_dataPackets_Update.Visible = true;
             lable_progressBar_Percentage.Visible = true;
 
+            // Start firmware update in background
             bool updateSuccess = false;
 
             try
             {
+                // Run send_firmware in a background task
                 updateSuccess = await Task.Run(() => send_firmware());
             }
             catch (Exception ex)
@@ -587,9 +598,11 @@ namespace Grader_Test_APP_v2._0
 
             try
             {
+                // Read response packet
                 byte[] resp = new byte[7];
                 int read = 0;
 
+                // Read until full packet received
                 while (read < 7)
                 {
                     if (!serialport1.IsOpen)
@@ -602,8 +615,10 @@ namespace Grader_Test_APP_v2._0
                 if (resp[0] != 0x24 || resp[6] != 0x23)
                     return false;
 
+                // Check ACK/NACK
                 byte ack = resp[3];
 
+                // Log received response
                 Console.WriteLine(
                     $"RX → {BitConverter.ToString(resp)}"
                 );
@@ -653,6 +668,7 @@ namespace Grader_Test_APP_v2._0
         //Loading firmware bin file from file explorer...
         private byte[] LoadFirmwareFromFile()
         {
+            // Open file dialog to select firmware file
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Title = "Select Firmware BIN File";
@@ -664,6 +680,7 @@ namespace Grader_Test_APP_v2._0
 
                 try
                 {
+                    // Read firmware file
                     byte[] firmware = File.ReadAllBytes(ofd.FileName);
                     FileInfo info = new FileInfo(ofd.FileName);
 
@@ -672,7 +689,7 @@ namespace Grader_Test_APP_v2._0
                         UI(() => MessageBox.Show("Empty firmware file"));
                         return null;
                     }
-
+                    // Calculate firmware parameters
                     uint fwLength = (uint)firmware.Length;
                     ushort calculatedCrc = CalculateCRC16(firmware);
 
@@ -682,6 +699,7 @@ namespace Grader_Test_APP_v2._0
 
                     UI(() =>
                     {
+                        // Update UI with firmware info
                         label_binName.Text = $"Name: {info.Name}";
                         label_binsize.Text = $"Size: {fwLength / 1024.0:N2} kB";
 
@@ -714,6 +732,7 @@ namespace Grader_Test_APP_v2._0
         {
             UI(() =>
             {
+                // Update status labels and progress bar
                 lable_dataPackets_Update.Text = operation;
                 lable_progressBar_Percentage.Text = percent + "%";
                 progressBar.Value = percent;
@@ -810,7 +829,7 @@ namespace Grader_Test_APP_v2._0
 
         private void SendConstellationCommand()
         {
-            SendCommand("#20,14,3,1,1,1,1,1,1,0,0,1,0,0,1,1*29\r\n", "CMD 20 sent Please wait...");
+            SendCommand("#12,0*1F\r\n", "CMD 20 sent Please wait...");
         }
 
         private void ConfigureBaseCommand()
@@ -820,7 +839,7 @@ namespace Grader_Test_APP_v2._0
 
         private void ConfigureRoverCommand()
         {
-            SendCommand("Rover Command here", "Rover Set");
+            SendCommand("#3,3,1,15,1*04\r\n", "Rover Set");
         }
 
         // send command helper function
@@ -915,7 +934,7 @@ namespace Grader_Test_APP_v2._0
                         }
                         break;
 
-                    case 20:
+                    case 12:
                         if (_currentTest == ActiveTest.Constellation && !_constellationStausRecieved)
                         {
                             ShowConstellationStatus(f);
@@ -923,6 +942,14 @@ namespace Grader_Test_APP_v2._0
                             _currentTest = ActiveTest.None; // stop Constellation test
                             AppendLog("CONSTELLATION STATUS RECEIVED", LogLevel.INFO);
                         }
+                        break;
+
+                    case 2:
+                        // Handle CMD-2 responses if needed
+                        break;
+
+                    case 3:
+                        // Handle CMD-3 responses if needed
                         break;
                 }
             }
@@ -1052,58 +1079,28 @@ namespace Grader_Test_APP_v2._0
         //display constellation status on log
         private void ShowConstellationStatus(string[] f)
         {
-
-            // CMD + LEN + 14 payload fields = 16
-            if (f.Length < 16)
+            // Expect: CMD(12), LEN(3), GAL, GLO, BDS
+            if (f.Length < 5)
             {
-                AppendLog("Incomplete CMD-20 packet", LogLevel.ERROR);
+                AppendLog("Incomplete CMD-12 Constellation Status packet", LogLevel.ERROR);
                 return;
             }
 
-            try
+            if (f[1] != "3")
             {
-                int id = int.Parse(f[2]);
-                int irnss = int.Parse(f[3]);
-                int gps = int.Parse(f[4]);
-                int glonass = int.Parse(f[5]);
-                int beidou = int.Parse(f[6]);
-                int galileo = int.Parse(f[7]);
-                int rtcm33 = int.Parse(f[8]);
-                int cmr = int.Parse(f[9]);
-                int cmrPlus = int.Parse(f[10]);
-                int satFix = int.Parse(f[11]);
-                int lband = int.Parse(f[12]);
-                int omnistar = int.Parse(f[13]);
-                int has = int.Parse(f[14]);
-                int b2b = int.Parse(f[15]);
-
-
-                AppendLog("===== GNSS CAPABILITIES =====", LogLevel.INFO);
-
-                AppendLog($"ID        : {id}", LogLevel.INFO);
-                AppendLog($"IRNSS     : {(irnss == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"GPS       : {(gps == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"GLONASS   : {(glonass == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"BeiDou    : {(beidou == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"Galileo   : {(galileo == 1 ? "YES" : "NO")}", LogLevel.INFO);
-
-                AppendLog($"RTCM 3.3  : {(rtcm33 == 1 ? "SUPPORTED" : "NOT SUPPORTED")}", LogLevel.INFO);
-                AppendLog($"CMR       : {(cmr == 1 ? "SUPPORTED" : "NOT SUPPORTED")}", LogLevel.INFO);
-                AppendLog($"CMR+      : {(cmrPlus == 1 ? "SUPPORTED" : "NOT SUPPORTED")}", LogLevel.INFO);
-
-                AppendLog($"Satellite FIX : {(satFix == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"L-BAND        : {(lband == 1 ? "YES" : "NO")}", LogLevel.INFO);
-
-                AppendLog($"Omnistar : {(omnistar == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"HAS       : {(has == 1 ? "YES" : "NO")}", LogLevel.INFO);
-                AppendLog($"B2B       : {(b2b == 1 ? "YES" : "NO")}", LogLevel.INFO);
-
-                AppendLog("============================", LogLevel.INFO);
+                AppendLog($"Unexpected CMD-12 length: {f[1]}", LogLevel.WARNING);
+                return;
             }
-            catch (Exception ex)
-            {
-                AppendLog("CMD-20 parse error: " + ex.Message, LogLevel.ERROR);
-            }
+
+            bool galileo = f[2] == "1";
+            bool glonass = f[3] == "1";
+            bool beidou = f[4] == "1";
+
+            AppendLog("===== CONSTELLATION STATUS (CMD 12) =====", LogLevel.INFO);
+            AppendLog($"GALILEO  : {(galileo ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"GLONASS : {(glonass ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"BEIDOU  : {(beidou ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog("========================================", LogLevel.INFO);
         }
 
         // stop all tests function, stop all test before starting a new one.
@@ -1151,8 +1148,6 @@ namespace Grader_Test_APP_v2._0
 
             AppendLog("===========================", LogLevel.INFO);
         }
-
-        
     }
 }
 
