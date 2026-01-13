@@ -21,7 +21,7 @@ namespace Grader_Test_APP_v2._0
         private bool _constellationStausRecieved = false;
         private bool _TestRunning = false;
 
-        
+
 
         // // log level for logging purpose in device test tab
         public enum LogLevel
@@ -190,6 +190,7 @@ namespace Grader_Test_APP_v2._0
                 label_fwHeaderCRC.Text = "Fw Header CRC:";
                 label_FwCalculatedCRC.Text = "Fw Calculated CRC:";
                 label_BinStatus.Text = "Status:";
+                label_BinStatus.BackColor = Color.FromArgb(34, 34, 34);
 
                 AppendLog("Device disconnected", LogLevel.WARNING);   // log
             });
@@ -263,8 +264,8 @@ namespace Grader_Test_APP_v2._0
                     serialport1.Open();
                     AttachRxHandler();
 
-                    
-                   
+
+
 
                     UI(() =>
                     {
@@ -317,7 +318,7 @@ namespace Grader_Test_APP_v2._0
         {
             _lastLoggedFwPercent = -1;
             AppendLog("FIRMWARE UPGRADE STARTED", LogLevel.INFO); // log
-            
+
 
             if (firmwareData == null) return false;
 
@@ -334,11 +335,11 @@ namespace Grader_Test_APP_v2._0
                 UI(() => MessageBox.Show("Firmware length mismatch"));
                 return false;
             }
-            
+
             // progress bar update
             UpdateStatus("Starting firmware update...", 0);
             progressBar.Value = 0;
-            
+
             // Set current test to Firmware Upgrade
             _currentTest = ActiveTest.FirmwareUpgrade;
 
@@ -490,7 +491,7 @@ namespace Grader_Test_APP_v2._0
                         percent
                     );
                 });
-                
+
                 Thread.Sleep(50);
             }
 
@@ -770,7 +771,17 @@ namespace Grader_Test_APP_v2._0
             SendConstellationCommand();
         }
 
-        // make sure that the port is open before sending commands
+        private void button_base_config_Click(object sender, EventArgs e)
+        {
+            ConfigureBaseCommand();
+        }
+
+        private void button_rover_config_Click(object sender, EventArgs e)
+        {
+            ConfigureRoverCommand();
+        }
+
+        // Make sure that the port is open before sending commands
         private bool EnsurePortOpen()
         {
             if (!serialport1.IsOpen)
@@ -781,7 +792,7 @@ namespace Grader_Test_APP_v2._0
             return true;
         }
 
-        // commands send to the device
+        // All Device Commands
         private void ResetCommand()
         {
             SendCommand("#1,0,0*2d\r\n", "");
@@ -800,6 +811,16 @@ namespace Grader_Test_APP_v2._0
         private void SendConstellationCommand()
         {
             SendCommand("#20,14,3,1,1,1,1,1,1,0,0,1,0,0,1,1*29\r\n", "CMD 20 sent Please wait...");
+        }
+
+        private void ConfigureBaseCommand()
+        {
+            SendCommand("Base Command here", "Base Set");
+        }
+
+        private void ConfigureRoverCommand()
+        {
+            SendCommand("Rover Command here", "Rover Set");
         }
 
         // send command helper function
@@ -1031,7 +1052,7 @@ namespace Grader_Test_APP_v2._0
         //display constellation status on log
         private void ShowConstellationStatus(string[] f)
         {
-            
+
             // CMD + LEN + 14 payload fields = 16
             if (f.Length < 16)
             {
@@ -1056,7 +1077,7 @@ namespace Grader_Test_APP_v2._0
                 int has = int.Parse(f[14]);
                 int b2b = int.Parse(f[15]);
 
-                
+
                 AppendLog("===== GNSS CAPABILITIES =====", LogLevel.INFO);
 
                 AppendLog($"ID        : {id}", LogLevel.INFO);
@@ -1085,7 +1106,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
-        // stop all tests function function, stop all test before starting a new one.
+        // stop all tests function, stop all test before starting a new one.
         private void StopAllTests()
         {
             _currentTest = ActiveTest.None;
@@ -1130,6 +1151,7 @@ namespace Grader_Test_APP_v2._0
 
             AppendLog("===========================", LogLevel.INFO);
         }
+
         
     }
 }
