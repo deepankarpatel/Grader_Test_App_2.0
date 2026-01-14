@@ -1,4 +1,5 @@
 ﻿using System.IO.Ports;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 
@@ -19,9 +20,12 @@ namespace Grader_Test_APP_v2._0
         private bool _deviceStatusReceived = false;
         private bool _radioStatusReceived = false;
         private bool _constellationStausRecieved = false;
+        private bool _configBaseStatusReceived = false;
+        private bool _configRoverStatusReceived = false;
         private bool _TestRunning = false;
-
-
+        private bool _galileoEnabled = false;
+        private bool _glonassEnabled = false;
+        private bool _beidouEnabled = false;
 
         // // log level for logging purpose in device test tab
         public enum LogLevel
@@ -37,6 +41,8 @@ namespace Grader_Test_APP_v2._0
             GNSS,
             Radio,
             Constellation,
+            ConfigBase,
+            ConfigRover,
             FirmwareUpgrade
         }
 
@@ -517,7 +523,7 @@ namespace Grader_Test_APP_v2._0
                 reset();
                 return false;
             }
-            
+
             AppendLog("Sending UPDATE packet (finalizing firmware)", LogLevel.INFO); // log
 
             // Send UPDATE packet
@@ -792,12 +798,77 @@ namespace Grader_Test_APP_v2._0
 
         private void button_base_config_Click(object sender, EventArgs e)
         {
+            if (!EnsurePortOpen()) return;
+            StopAllTests();
+            AttachRxHandler();
+            _configBaseStatusReceived = false;
+            _currentTest = ActiveTest.ConfigBase;
             ConfigureBaseCommand();
         }
 
         private void button_rover_config_Click(object sender, EventArgs e)
         {
+            if (!EnsurePortOpen()) return;
+            StopAllTests();
+            AttachRxHandler();
+            _configRoverStatusReceived = false;
+            _currentTest = ActiveTest.ConfigRover;
             ConfigureRoverCommand();
+        }
+
+        private void button_gallileo_Click(object sender, EventArgs e)
+        {
+            if (!EnsurePortOpen()) return;
+
+            StopAllTests();
+            AttachRxHandler();
+            _currentTest = ActiveTest.Constellation;
+
+            if (_galileoEnabled)
+            {
+                DisableGallileoCommand();
+            }
+            else
+            {
+                EnableGallileoCommand();
+            }
+        }
+
+        private void button_glonass_Click(object sender, EventArgs e)
+        {
+            if (!EnsurePortOpen()) return;
+
+            StopAllTests();
+            AttachRxHandler();
+            _currentTest = ActiveTest.Constellation;
+
+            if (_glonassEnabled)
+            {
+                DisableGlonasssCommand();
+            }
+            else
+            {
+                EnableGlonassCommand();
+            }
+        }
+
+        private void button_beidou_Click(object sender, EventArgs e)
+        {
+            if (!EnsurePortOpen()) return;
+
+            StopAllTests();
+            AttachRxHandler();
+            _currentTest = ActiveTest.Constellation;
+
+            if (_beidouEnabled)
+            {
+                DisableBeidouCommand();
+            }
+            else
+            {
+                EnableBeidouCommand();
+            }
+            
         }
 
         // Make sure that the port is open before sending commands
@@ -834,13 +905,44 @@ namespace Grader_Test_APP_v2._0
 
         private void ConfigureBaseCommand()
         {
-            SendCommand("Base Command here", "Base Set");
+            SendCommand("#2,8,1,1,15,28.625256690,77.377734332,176.674,1,1000*3D\r\n", "CMD 2 Send Please wait...");
         }
 
         private void ConfigureRoverCommand()
         {
-            SendCommand("#3,3,1,15,1*04\r\n", "Rover Set");
+            SendCommand("#3,3,1,15,1*04\r\n", "CMD 3 Send Please Wait...");
         }
+
+        private void EnableGallileoCommand()
+        {
+            SendCommand("#15,2,GALILEO,1*6E\r\n", "CMD Enable Galileo sent Please wait...");
+        }
+
+        private void DisableGallileoCommand()
+        {
+            SendCommand("#15,2,GALILEO,0*6F\r\n", "CMD Disable Galileo sent Please wait...");
+        }
+
+        private void EnableGlonassCommand()
+        {
+            SendCommand("#15,2,GLONASS,1*60\r\n", "CMD Enable Glonass sent Please wait...");
+        }
+
+        private void DisableGlonasssCommand()
+        {
+            SendCommand("#15,2,GLONASS,0*61r\n", "CMD Disable Glonass Please wait...");
+        }
+
+        private void EnableBeidouCommand()
+        {
+            SendCommand("#15,2,BEIDOU,1*3B\r\n", "CMD Enable Beidou Please wait...");
+        }
+
+        private void DisableBeidouCommand()
+        {
+            SendCommand("#15,2,BEIDOU,0*3A\r\n", "CMD Disable Beidou Please wait...");
+        }
+
 
         // send command helper function
         private void SendCommand(string cmd, string logText)
@@ -945,11 +1047,36 @@ namespace Grader_Test_APP_v2._0
                         break;
 
                     case 2:
-                        // Handle CMD-2 responses if needed
+                        _configBaseStatusReceived = true;
+                        _currentTest = ActiveTest.None; // stop Config Base test
+                        AppendLog("BASE CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
 
                     case 3:
-                        // Handle CMD-3 responses if needed
+                        _configBaseStatusReceived = true;
+                        _currentTest = ActiveTest.None; // stop config Rover test
+                        AppendLog("Rover CONFIGURATION ACK RECEIVED", LogLevel.INFO);
+                        break;
+
+                    case 99:
+                        
+                        _galileoEnabled = true;
+                        _currentTest = ActiveTest.None;
+                        AppendLog("Galileo ACK RECEIVED", LogLevel.INFO);
+                        break;
+
+                    case 98:
+                        
+                        _glonassEnabled = true;
+                        _currentTest = ActiveTest.None;
+                        AppendLog("Glonass ACK RECEIVED", LogLevel.INFO);
+                        break;
+
+                    case 97:
+                        
+                        _beidouEnabled = true;
+                        _currentTest = ActiveTest.None;
+                        AppendLog("beidou ACK RECEIVED", LogLevel.INFO);
                         break;
                 }
             }
@@ -1091,10 +1218,13 @@ namespace Grader_Test_APP_v2._0
                 AppendLog($"Unexpected CMD-12 length: {f[1]}", LogLevel.WARNING);
                 return;
             }
-
             bool galileo = f[2] == "1";
             bool glonass = f[3] == "1";
             bool beidou = f[4] == "1";
+
+            _galileoEnabled = galileo;
+            _glonassEnabled = glonass;
+            _beidouEnabled = beidou;
 
             AppendLog("===== CONSTELLATION STATUS (CMD 12) =====", LogLevel.INFO);
             AppendLog($"GALILEO  : {(galileo ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
@@ -1102,6 +1232,9 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"BEIDOU  : {(beidou ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
             AppendLog("========================================", LogLevel.INFO);
         }
+
+       
+
 
         // stop all tests function, stop all test before starting a new one.
         private void StopAllTests()
@@ -1138,6 +1271,7 @@ namespace Grader_Test_APP_v2._0
             rtbLogs.ScrollToCaret();
         }
 
+        // log connection info function
         private void LogConnectionInfo()
         {
             AppendLog("====== CONNECTION INFO =======", LogLevel.INFO);

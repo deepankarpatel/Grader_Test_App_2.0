@@ -62,6 +62,10 @@
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
             panel4 = new Panel();
+            button4 = new Button();
+            button_baidu = new Button();
+            button_gallileo = new Button();
+            button_glonass = new Button();
             button_base_config = new Button();
             button_rover_config = new Button();
             button_constellation_test = new Button();
@@ -491,6 +495,10 @@
             panel4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel4.BackColor = Color.FromArgb(34, 34, 34);
             panel4.BorderStyle = BorderStyle.FixedSingle;
+            panel4.Controls.Add(button4);
+            panel4.Controls.Add(button_baidu);
+            panel4.Controls.Add(button_gallileo);
+            panel4.Controls.Add(button_glonass);
             panel4.Controls.Add(button_base_config);
             panel4.Controls.Add(button_rover_config);
             panel4.Controls.Add(button_constellation_test);
@@ -501,6 +509,61 @@
             panel4.Name = "panel4";
             panel4.Size = new Size(233, 628);
             panel4.TabIndex = 6;
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.FromArgb(50, 50, 50);
+            button4.FlatStyle = FlatStyle.Popup;
+            button4.Font = new Font("Segoe UI", 9F);
+            button4.ForeColor = Color.White;
+            button4.Location = new Point(115, 195);
+            button4.Name = "button4";
+            button4.Size = new Size(115, 45);
+            button4.TabIndex = 10;
+            button4.Text = "N/A";
+            button4.UseVisualStyleBackColor = false;
+            // 
+            // button_baidu
+            // 
+            button_baidu.BackColor = Color.FromArgb(50, 50, 50);
+            button_baidu.FlatStyle = FlatStyle.Popup;
+            button_baidu.Font = new Font("Segoe UI", 9F);
+            button_baidu.ForeColor = Color.White;
+            button_baidu.Location = new Point(1, 195);
+            button_baidu.Name = "button_baidu";
+            button_baidu.Size = new Size(114, 45);
+            button_baidu.TabIndex = 9;
+            button_baidu.Text = "Enable/Disable Beidou";
+            button_baidu.UseVisualStyleBackColor = false;
+            button_baidu.Click += button_beidou_Click;
+            // 
+            // button_gallileo
+            // 
+            button_gallileo.BackColor = Color.FromArgb(50, 50, 50);
+            button_gallileo.FlatStyle = FlatStyle.Popup;
+            button_gallileo.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            button_gallileo.ForeColor = Color.White;
+            button_gallileo.Location = new Point(1, 150);
+            button_gallileo.Name = "button_gallileo";
+            button_gallileo.Size = new Size(114, 45);
+            button_gallileo.TabIndex = 8;
+            button_gallileo.Text = "Enable/Disable Gallileo";
+            button_gallileo.UseVisualStyleBackColor = false;
+            button_gallileo.Click += button_gallileo_Click;
+            // 
+            // button_glonass
+            // 
+            button_glonass.BackColor = Color.FromArgb(50, 50, 50);
+            button_glonass.FlatStyle = FlatStyle.Popup;
+            button_glonass.Font = new Font("Segoe UI", 9F);
+            button_glonass.ForeColor = Color.White;
+            button_glonass.Location = new Point(115, 150);
+            button_glonass.Name = "button_glonass";
+            button_glonass.Size = new Size(115, 45);
+            button_glonass.TabIndex = 7;
+            button_glonass.Text = "Enable/Disable Glonass";
+            button_glonass.UseVisualStyleBackColor = false;
+            button_glonass.Click += button_glonass_Click;
             // 
             // button_base_config
             // 
@@ -658,5 +721,9 @@
         private RichTextBox rtbLogs;
         private Button button_OTA_mode;
         private PictureBox pictureBox1;
+        private Button button4;
+        private Button button_baidu;
+        private Button button_gallileo;
+        private Button button_glonass;
     }
 }
