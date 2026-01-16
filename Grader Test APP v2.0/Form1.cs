@@ -27,7 +27,7 @@ namespace Grader_Test_APP_v2._0
         private bool _glonassEnabled = false;
         private bool _beidouEnabled = false;
 
-        // // log level for logging purpose in device test tab
+        // log level for logging purpose in device test tab
         public enum LogLevel
         {
             INFO,
@@ -35,6 +35,7 @@ namespace Grader_Test_APP_v2._0
             ERROR
         }
 
+        // Active test enumeration
         private enum ActiveTest
         {
             None,
@@ -55,6 +56,7 @@ namespace Grader_Test_APP_v2._0
 
         //globle variables
         private byte[] firmwareData;
+        private int _lastLoggedFwPercent = -1;
 
         // Firmware constants
         const byte FW_TYPE_APP = 0xAA;
@@ -66,7 +68,7 @@ namespace Grader_Test_APP_v2._0
             serialport1.DataReceived -= SerialPort_DataReceived;
             serialport1.DataReceived += SerialPort_DataReceived;
         }
-        private int _lastLoggedFwPercent = -1;
+        
 
         // CRC16 table for checksum calculation
         static readonly ushort[] crc16_table = new ushort[]
@@ -216,6 +218,7 @@ namespace Grader_Test_APP_v2._0
             //Sending command to device To enter in OTA Mode
             String command = "#42,1,0*07\r\n";
             serialport1.Write(command);
+
 
         }
 
@@ -497,7 +500,7 @@ namespace Grader_Test_APP_v2._0
                     UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
 
                     // Log ONLY when percent changes AND is multiple of 10
-                    if (percent != _lastLoggedFwPercent && percent % 10 == 0)
+                    if (percent != _lastLoggedFwPercent && percent % 5 == 0)
                     {
                         AppendLog($"Firmware data sent: {percent}%", LogLevel.INFO);
                         _lastLoggedFwPercent = percent;
@@ -570,7 +573,7 @@ namespace Grader_Test_APP_v2._0
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
-            AttachRxHandler(); // re-attach data received handler
+            AttachRxHandler(); // re-attach data received handler  
             return true;
         }
 
@@ -581,6 +584,15 @@ namespace Grader_Test_APP_v2._0
             button_upgrade.Enabled = false;
             button_disconnect.Enabled = false;
             button_browse_file.Enabled = false;
+            button_gnss_test.Enabled = false;
+            button_radio_test.Enabled = false;
+            button_constellation_test.Enabled = false;
+            button_base_config.Enabled = false;
+            button_rover_config.Enabled = false;
+            button_gallileo.Enabled = false;
+            button_glonass.Enabled = false;
+            button_baidu.Enabled = false;
+            button_saveLogs.Enabled = false;
             lable_dataPackets_Update.Visible = true;
             lable_progressBar_Percentage.Visible = true;
 
@@ -601,6 +613,15 @@ namespace Grader_Test_APP_v2._0
             {
                 button_disconnect.Enabled = true;
                 button_OTA_mode.Enabled = false;
+                button_gnss_test.Enabled = true;
+                button_radio_test.Enabled = true;
+                button_constellation_test.Enabled = true;
+                button_base_config.Enabled = true;
+                button_rover_config.Enabled = true;
+                button_gallileo.Enabled = true;
+                button_glonass.Enabled = true;
+                button_baidu.Enabled = true;
+                button_saveLogs.Enabled = true;
             }
         }
 
@@ -906,7 +927,7 @@ namespace Grader_Test_APP_v2._0
 
         private void SendRadioCommand()
         {
-            SendCommand("#9,4,4340250,TRIMMK3-19200,M,1*49\r\n", "CMD 9 sent Please wait...");
+            SendCommand("#9,4,4340125,TRIMMK3-19200,L,2*4A\r\n", "CMD 9 sent Please wait...");
         }
 
         private void SendConstellationCommand()
@@ -916,7 +937,7 @@ namespace Grader_Test_APP_v2._0
 
         private void ConfigureBaseCommand()
         {
-            SendCommand("#2,8,1,1,15,28.625256690,77.377734332,176.674,1,1000*3D\r\n", "CMD 2 Send Please wait...");
+            SendCommand("#2,8,0,1,15,0,0,0,1,1000*23\r\n", "CMD 2 Send Please wait...");
         }
 
         private void ConfigureRoverCommand()
@@ -1087,10 +1108,6 @@ namespace Grader_Test_APP_v2._0
                                 case ActiveTest.beidou:
                                     _beidouEnabled = !_beidouEnabled;
                                     AppendLog("Beidou ACK RECEIVED", LogLevel.INFO);
-                                    break;
-
-                                default:
-                                    AppendLog("CMD-15 ACK received but no active test", LogLevel.WARNING);
                                     break;
                             }
 
