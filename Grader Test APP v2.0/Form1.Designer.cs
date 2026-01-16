@@ -62,7 +62,7 @@
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
             panel4 = new Panel();
-            button4 = new Button();
+            button_saveLogs = new Button();
             button_baidu = new Button();
             button_gallileo = new Button();
             button_glonass = new Button();
@@ -495,7 +495,7 @@
             panel4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel4.BackColor = Color.FromArgb(34, 34, 34);
             panel4.BorderStyle = BorderStyle.FixedSingle;
-            panel4.Controls.Add(button4);
+            panel4.Controls.Add(button_saveLogs);
             panel4.Controls.Add(button_baidu);
             panel4.Controls.Add(button_gallileo);
             panel4.Controls.Add(button_glonass);
@@ -510,18 +510,19 @@
             panel4.Size = new Size(233, 628);
             panel4.TabIndex = 6;
             // 
-            // button4
+            // button_saveLogs
             // 
-            button4.BackColor = Color.FromArgb(50, 50, 50);
-            button4.FlatStyle = FlatStyle.Popup;
-            button4.Font = new Font("Segoe UI", 9F);
-            button4.ForeColor = Color.White;
-            button4.Location = new Point(115, 195);
-            button4.Name = "button4";
-            button4.Size = new Size(115, 45);
-            button4.TabIndex = 10;
-            button4.Text = "N/A";
-            button4.UseVisualStyleBackColor = false;
+            button_saveLogs.BackColor = Color.FromArgb(50, 50, 50);
+            button_saveLogs.FlatStyle = FlatStyle.Popup;
+            button_saveLogs.Font = new Font("Segoe UI", 9F);
+            button_saveLogs.ForeColor = Color.White;
+            button_saveLogs.Location = new Point(115, 195);
+            button_saveLogs.Name = "button_saveLogs";
+            button_saveLogs.Size = new Size(115, 45);
+            button_saveLogs.TabIndex = 10;
+            button_saveLogs.Text = "Save Logs";
+            button_saveLogs.UseVisualStyleBackColor = false;
+            button_saveLogs.Click += button_saveLogs_Click;
             // 
             // button_baidu
             // 
@@ -721,7 +722,7 @@
         private RichTextBox rtbLogs;
         private Button button_OTA_mode;
         private PictureBox pictureBox1;
-        private Button button4;
+        private Button button_saveLogs;
         private Button button_baidu;
         private Button button_gallileo;
         private Button button_glonass;

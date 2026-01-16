@@ -1,5 +1,5 @@
 ﻿using System.IO.Ports;
-using System.Runtime.CompilerServices;
+using System.IO;
 using System.Text;
 
 
@@ -43,6 +43,9 @@ namespace Grader_Test_APP_v2._0
             Constellation,
             ConfigBase,
             ConfigRover,
+            gallilio,
+            glonass,
+            beidou,
             FirmwareUpgrade
         }
 
@@ -173,6 +176,9 @@ namespace Grader_Test_APP_v2._0
                 label_message.Text = "Device Disconnected";
                 label_message.ForeColor = Color.White;
                 label_message.BackColor = ColorTranslator.FromHtml("#BA1A1A");
+                button_gallileo.BackColor = Color.FromArgb(50, 50, 50);
+                button_glonass.BackColor = Color.FromArgb(50, 50, 50);
+                button_baidu.BackColor = Color.FromArgb(50, 50, 50);
 
                 button_disconnect.Enabled = false;
                 button_disconnect.Visible = false;
@@ -271,6 +277,7 @@ namespace Grader_Test_APP_v2._0
 
                     serialport1.Open();
                     AttachRxHandler(); // attach data received handler
+                    rtbLogs.Clear();
 
                     UI(() =>
                     {
@@ -752,17 +759,15 @@ namespace Grader_Test_APP_v2._0
         private void btnGnssTest_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
-
-
             StopAllTests();
             AttachRxHandler();
-            rtbLogs.Clear();
+            // rtbLogs.Clear();
             _deviceStatusReceived = false;
             _currentTest = ActiveTest.GNSS;
 
 
             AppendLog("GNSS TEST STARTED", LogLevel.INFO);
-            LogConnectionInfo();
+            //LogConnectionInfo();
             SendGnssCommand();
         }
 
@@ -773,12 +778,12 @@ namespace Grader_Test_APP_v2._0
 
             StopAllTests();
             AttachRxHandler();
-            rtbLogs.Clear();
+            // rtbLogs.Clear();
             _radioStatusReceived = false;
             _currentTest = ActiveTest.Radio;
 
             AppendLog("RADIO TEST STARTED", LogLevel.INFO);
-            LogConnectionInfo();
+            // LogConnectionInfo();
             SendRadioCommand();
         }
         // Constellation Test button on click
@@ -787,12 +792,12 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
             StopAllTests();
             AttachRxHandler();
-            rtbLogs.Clear();
+            //  rtbLogs.Clear();
             _constellationStausRecieved = false;
             _currentTest = ActiveTest.Constellation;
 
             AppendLog("CONSTELLATION TEST STARTED", LogLevel.INFO);
-            LogConnectionInfo();
+            // LogConnectionInfo();
             SendConstellationCommand();
         }
 
@@ -822,15 +827,17 @@ namespace Grader_Test_APP_v2._0
 
             StopAllTests();
             AttachRxHandler();
-            _currentTest = ActiveTest.Constellation;
+            _currentTest = ActiveTest.gallilio;
 
             if (_galileoEnabled)
             {
                 DisableGallileoCommand();
+                button_gallileo.BackColor = Color.FromArgb(186, 26, 26);
             }
             else
             {
                 EnableGallileoCommand();
+                button_gallileo.BackColor = Color.FromArgb(56, 106, 31);
             }
         }
 
@@ -840,15 +847,17 @@ namespace Grader_Test_APP_v2._0
 
             StopAllTests();
             AttachRxHandler();
-            _currentTest = ActiveTest.Constellation;
+            _currentTest = ActiveTest.glonass;
 
             if (_glonassEnabled)
             {
                 DisableGlonasssCommand();
+                button_glonass.BackColor = Color.FromArgb(186, 26, 26);
             }
             else
             {
                 EnableGlonassCommand();
+                button_glonass.BackColor = Color.FromArgb(56, 106, 31);
             }
         }
 
@@ -858,17 +867,19 @@ namespace Grader_Test_APP_v2._0
 
             StopAllTests();
             AttachRxHandler();
-            _currentTest = ActiveTest.Constellation;
+            _currentTest = ActiveTest.beidou;
 
             if (_beidouEnabled)
             {
                 DisableBeidouCommand();
+                button_baidu.BackColor = Color.FromArgb(186, 26, 26);
             }
             else
             {
                 EnableBeidouCommand();
+                button_baidu.BackColor = Color.FromArgb(56, 106, 31);
             }
-            
+
         }
 
         // Make sure that the port is open before sending commands
@@ -930,7 +941,7 @@ namespace Grader_Test_APP_v2._0
 
         private void DisableGlonasssCommand()
         {
-            SendCommand("#15,2,GLONASS,0*61r\n", "CMD Disable Glonass Please wait...");
+            SendCommand("#15,2,GLONASS,0*61\r\n", "CMD Disable Glonass Please wait...");
         }
 
         private void EnableBeidouCommand()
@@ -1058,25 +1069,33 @@ namespace Grader_Test_APP_v2._0
                         AppendLog("Rover CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
 
-                    case 99:
-                        
-                        _galileoEnabled = true;
-                        _currentTest = ActiveTest.None;
-                        AppendLog("Galileo ACK RECEIVED", LogLevel.INFO);
-                        break;
+                    case 15:
+                        {
+                            // ACK for constellation enable/disable
+                            switch (_currentTest)
+                            {
+                                case ActiveTest.gallilio:
+                                    _galileoEnabled = !_galileoEnabled;
+                                    AppendLog("Galileo ACK RECEIVED", LogLevel.INFO);
+                                    break;
 
-                    case 98:
-                        
-                        _glonassEnabled = true;
-                        _currentTest = ActiveTest.None;
-                        AppendLog("Glonass ACK RECEIVED", LogLevel.INFO);
-                        break;
+                                case ActiveTest.glonass:
+                                    _glonassEnabled = !_glonassEnabled;
+                                    AppendLog("Glonass ACK RECEIVED", LogLevel.INFO);
+                                    break;
 
-                    case 97:
-                        
-                        _beidouEnabled = true;
-                        _currentTest = ActiveTest.None;
-                        AppendLog("beidou ACK RECEIVED", LogLevel.INFO);
+                                case ActiveTest.beidou:
+                                    _beidouEnabled = !_beidouEnabled;
+                                    AppendLog("Beidou ACK RECEIVED", LogLevel.INFO);
+                                    break;
+
+                                default:
+                                    AppendLog("CMD-15 ACK received but no active test", LogLevel.WARNING);
+                                    break;
+                            }
+
+                            _currentTest = ActiveTest.None;
+                        }
                         break;
                 }
             }
@@ -1227,13 +1246,13 @@ namespace Grader_Test_APP_v2._0
             _beidouEnabled = beidou;
 
             AppendLog("===== CONSTELLATION STATUS (CMD 12) =====", LogLevel.INFO);
-            AppendLog($"GALILEO  : {(galileo ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
-            AppendLog($"GLONASS : {(glonass ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
-            AppendLog($"BEIDOU  : {(beidou ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"GALILEO : {(galileo ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"GLONASS : {(glonass ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"BEIDOU  : {(beidou  ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
             AppendLog("========================================", LogLevel.INFO);
         }
 
-       
+
 
 
         // stop all tests function, stop all test before starting a new one.
@@ -1267,7 +1286,8 @@ namespace Grader_Test_APP_v2._0
 
             rtbLogs.SelectionStart = rtbLogs.TextLength;
             rtbLogs.SelectionColor = c;
-            rtbLogs.AppendText($"[{DateTime.Now:HH:mm:ss}] {level}: {msg}\n");
+            rtbLogs.AppendText($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {level}: {msg}\n");
+            
             rtbLogs.ScrollToCaret();
         }
 
@@ -1281,6 +1301,32 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"Baudrate   : {(comboBox_baudrate.Text)}", LogLevel.INFO);
 
             AppendLog("===========================", LogLevel.INFO);
+        }
+
+        private void button_saveLogs_Click(object sender, EventArgs e)
+        {
+            SaveLogsToFile();
+        }
+        private void SaveLogsToFile()
+        {
+            try
+            {
+                string folder = Path.Combine(Application.StartupPath, "Logs");
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                string fileName = $"Device_logs_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string fullPath = Path.Combine(folder, fileName);
+
+                File.WriteAllText(fullPath, rtbLogs.Text);
+
+                AppendLog($"Logs saved: {fullPath}", LogLevel.INFO);
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Log save failed: " + ex.Message, LogLevel.ERROR);
+            }
         }
     }
 }
