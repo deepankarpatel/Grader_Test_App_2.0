@@ -1225,7 +1225,7 @@ namespace Grader_Test_APP_v2._0
         //display constellation status on log
         private void ShowConstellationStatus(string[] f)
         {
-            // Expect: CMD(12), LEN(3), GAL, GLO, BDS
+            // CMD(12), LEN(3), GAL, GLO, BDS
             if (f.Length < 5)
             {
                 AppendLog("Incomplete CMD-12 Constellation Status packet", LogLevel.ERROR);
@@ -1237,6 +1237,7 @@ namespace Grader_Test_APP_v2._0
                 AppendLog($"Unexpected CMD-12 length: {f[1]}", LogLevel.WARNING);
                 return;
             }
+            // Parse constellation statuses
             bool galileo = f[2] == "1";
             bool glonass = f[3] == "1";
             bool beidou = f[4] == "1";
@@ -1251,9 +1252,6 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"BEIDOU  : {(beidou  ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
             AppendLog("========================================", LogLevel.INFO);
         }
-
-
-
 
         // stop all tests function, stop all test before starting a new one.
         private void StopAllTests()
@@ -1303,10 +1301,13 @@ namespace Grader_Test_APP_v2._0
             AppendLog("===========================", LogLevel.INFO);
         }
 
+        // Save logs to file button on click
         private void button_saveLogs_Click(object sender, EventArgs e)
         {
             SaveLogsToFile();
         }
+
+        // save logs to file function
         private void SaveLogsToFile()
         {
             try
