@@ -499,16 +499,16 @@ namespace Grader_Test_APP_v2._0
                     UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
 
                     // Log progress if percent changed
-                    if (!rtbLogs.Text.Contains("Firmware data sent:"))
+                    if (!rtbLogs.Text.Contains("Sending firmware data:"))
                     {
-                        AppendLog($"Firmware data sent: {percent}%", LogLevel.INFO);
+                        AppendLog($"Sending firmware data: {percent}%", LogLevel.INFO);
                     }
                     else
                     {
                         rtbLogs.Text = System.Text.RegularExpressions.Regex.Replace(
                          rtbLogs.Text,
-                            @"Firmware data sent: \d+%",
-                            $"Firmware data sent: {percent}%"
+                            @"Sending firmware data: \d+%",
+                            $"Sending firmware data: {percent}%"
                         );
                     }
 
@@ -538,6 +538,7 @@ namespace Grader_Test_APP_v2._0
             }
 
             AppendLog("Sending UPDATE packet", LogLevel.INFO); // log
+            AppendLog("Finalizing Update...", LogLevel.INFO); // log
             
             // Send UPDATE packet
             serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
@@ -565,7 +566,7 @@ namespace Grader_Test_APP_v2._0
                     MessageBoxIcon.Information
                 );
             });
-            AppendLog("Finalizing Update...", LogLevel.INFO); // log
+            
             AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
 
             // Confirming the update is done or no test is active
