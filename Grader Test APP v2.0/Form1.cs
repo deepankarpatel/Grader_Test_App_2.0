@@ -420,7 +420,7 @@ namespace Grader_Test_APP_v2._0
             // progress bar update
             UpdateStatus("Sending firmware header...", 0);
             Application.DoEvents();
-            AppendLog("Sending firmware HEADER packet", LogLevel.INFO); // log
+            AppendLog("Sending HEADER packet", LogLevel.INFO); // log
 
             // Send HEADER packet
             serialport1.Write(headerPacket.ToArray(), 0, headerPacket.Count);
@@ -451,7 +451,7 @@ namespace Grader_Test_APP_v2._0
                 // Calculate checksum
                 ushort dataChecksum = 0;
                 foreach (byte b in dataPayload)
-                    dataChecksum += b;
+                dataChecksum += b;
 
                 // Construct DATA packet
                 List<byte> dataPacket = new List<byte>();
@@ -491,12 +491,14 @@ namespace Grader_Test_APP_v2._0
 
                 offset += size;
 
+                // Update progress every 1%
                 UI(() =>
                 {
                     int percent = (int)(offset * 100 / firmwareData.Length);
 
                     UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
 
+                    // Log progress if percent changed
                     if (!rtbLogs.Text.Contains("Firmware data sent:"))
                     {
                         AppendLog($"Firmware data sent: {percent}%", LogLevel.INFO);
@@ -504,7 +506,7 @@ namespace Grader_Test_APP_v2._0
                     else
                     {
                         rtbLogs.Text = System.Text.RegularExpressions.Regex.Replace(
-                            rtbLogs.Text,
+                         rtbLogs.Text,
                             @"Firmware data sent: \d+%",
                             $"Firmware data sent: {percent}%"
                         );
@@ -535,8 +537,8 @@ namespace Grader_Test_APP_v2._0
                 return false;
             }
 
-            AppendLog("Sending UPDATE packet (finalizing firmware)", LogLevel.INFO); // log
-
+            AppendLog("Sending UPDATE packet", LogLevel.INFO); // log
+            
             // Send UPDATE packet
             serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
             if (!WaitForUpdateResponse(40000))
@@ -563,7 +565,7 @@ namespace Grader_Test_APP_v2._0
                     MessageBoxIcon.Information
                 );
             });
-
+            AppendLog("Finalizing Update...", LogLevel.INFO); // log
             AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
 
             // Confirming the update is done or no test is active
@@ -1309,11 +1311,11 @@ namespace Grader_Test_APP_v2._0
         {
             AppendLog("====== CONNECTION INFO =======", LogLevel.INFO);
 
-            AppendLog($"Device      : {(comboBox_device.Text)}", LogLevel.INFO);
-            AppendLog($"Port          : {(comboBox_port.Text)}", LogLevel.INFO);
+            AppendLog($"Device     : {(comboBox_device.Text)}", LogLevel.INFO);
+            AppendLog($"Port       : {(comboBox_port.Text)}", LogLevel.INFO);
             AppendLog($"Baudrate   : {(comboBox_baudrate.Text)}", LogLevel.INFO);
 
-            AppendLog("===========================", LogLevel.INFO);
+            AppendLog("==============================", LogLevel.INFO);
         }
 
         // Save logs to file button on click

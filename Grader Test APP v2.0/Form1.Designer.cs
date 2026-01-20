@@ -187,7 +187,7 @@
             label_port.AutoSize = true;
             label_port.Font = new Font("Segoe UI Semibold", 11.25F, FontStyle.Bold);
             label_port.ForeColor = Color.White;
-            label_port.Location = new Point(36, 196);
+            label_port.Location = new Point(36, 195);
             label_port.Name = "label_port";
             label_port.Size = new Size(44, 20);
             label_port.TabIndex = 3;
@@ -253,7 +253,7 @@
             comboBox_port.Font = new Font("Segoe UI", 11.25F);
             comboBox_port.ForeColor = Color.Black;
             comboBox_port.FormattingEnabled = true;
-            comboBox_port.Location = new Point(166, 190);
+            comboBox_port.Location = new Point(166, 189);
             comboBox_port.Name = "comboBox_port";
             comboBox_port.Size = new Size(154, 28);
             comboBox_port.TabIndex = 3;
@@ -297,7 +297,7 @@
             // 
             label_FwCalculatedCRC.AutoSize = true;
             label_FwCalculatedCRC.Font = new Font("Consolas", 9.75F);
-            label_FwCalculatedCRC.Location = new Point(32, 235);
+            label_FwCalculatedCRC.Location = new Point(32, 245);
             label_FwCalculatedCRC.Name = "label_FwCalculatedCRC";
             label_FwCalculatedCRC.Size = new Size(133, 15);
             label_FwCalculatedCRC.TabIndex = 10;
@@ -307,7 +307,7 @@
             // 
             label_fwHeaderCRC.AutoSize = true;
             label_fwHeaderCRC.Font = new Font("Consolas", 9.75F);
-            label_fwHeaderCRC.Location = new Point(32, 210);
+            label_fwHeaderCRC.Location = new Point(32, 220);
             label_fwHeaderCRC.Name = "label_fwHeaderCRC";
             label_fwHeaderCRC.Size = new Size(105, 15);
             label_fwHeaderCRC.TabIndex = 9;
@@ -317,7 +317,7 @@
             // 
             label_fwLength.AutoSize = true;
             label_fwLength.Font = new Font("Consolas", 9.75F);
-            label_fwLength.Location = new Point(32, 185);
+            label_fwLength.Location = new Point(32, 195);
             label_fwLength.Name = "label_fwLength";
             label_fwLength.Size = new Size(77, 15);
             label_fwLength.TabIndex = 8;
@@ -327,7 +327,7 @@
             // 
             label_fwID.AutoSize = true;
             label_fwID.Font = new Font("Consolas", 9.75F);
-            label_fwID.Location = new Point(32, 161);
+            label_fwID.Location = new Point(32, 171);
             label_fwID.Name = "label_fwID";
             label_fwID.Size = new Size(42, 15);
             label_fwID.TabIndex = 7;
@@ -337,7 +337,7 @@
             // 
             label_filetype.AutoSize = true;
             label_filetype.Font = new Font("Consolas", 9.75F);
-            label_filetype.Location = new Point(32, 136);
+            label_filetype.Location = new Point(32, 146);
             label_filetype.Name = "label_filetype";
             label_filetype.Size = new Size(70, 15);
             label_filetype.TabIndex = 6;
@@ -347,7 +347,7 @@
             // 
             label_fwtype.AutoSize = true;
             label_fwtype.Font = new Font("Consolas", 9.75F);
-            label_fwtype.Location = new Point(32, 112);
+            label_fwtype.Location = new Point(32, 122);
             label_fwtype.Name = "label_fwtype";
             label_fwtype.Size = new Size(56, 15);
             label_fwtype.TabIndex = 5;
@@ -358,7 +358,7 @@
             label_BinStatus.AutoSize = true;
             label_BinStatus.Font = new Font("Consolas", 9.75F);
             label_BinStatus.ForeColor = Color.White;
-            label_BinStatus.Location = new Point(32, 259);
+            label_BinStatus.Location = new Point(32, 269);
             label_BinStatus.Name = "label_BinStatus";
             label_BinStatus.Size = new Size(56, 15);
             label_BinStatus.TabIndex = 4;
@@ -369,7 +369,7 @@
             label_binsize.AutoSize = true;
             label_binsize.Font = new Font("Consolas", 9.75F);
             label_binsize.ForeColor = Color.White;
-            label_binsize.Location = new Point(32, 88);
+            label_binsize.Location = new Point(32, 98);
             label_binsize.Name = "label_binsize";
             label_binsize.Size = new Size(42, 15);
             label_binsize.TabIndex = 2;
@@ -380,7 +380,7 @@
             label_binName.AutoSize = true;
             label_binName.Font = new Font("Consolas", 9.75F);
             label_binName.ForeColor = Color.White;
-            label_binName.Location = new Point(32, 65);
+            label_binName.Location = new Point(32, 75);
             label_binName.Name = "label_binName";
             label_binName.Size = new Size(42, 15);
             label_binName.TabIndex = 1;
@@ -391,9 +391,9 @@
             button_browse_file.Enabled = false;
             button_browse_file.FlatStyle = FlatStyle.System;
             button_browse_file.Font = new Font("Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button_browse_file.Location = new Point(31, 22);
+            button_browse_file.Location = new Point(31, 27);
             button_browse_file.Name = "button_browse_file";
-            button_browse_file.Size = new Size(77, 30);
+            button_browse_file.Size = new Size(85, 35);
             button_browse_file.TabIndex = 0;
             button_browse_file.Text = "Browse ";
             button_browse_file.UseVisualStyleBackColor = true;
@@ -419,11 +419,11 @@
             button_OTA_mode.BackColor = Color.FromArgb(46, 46, 40);
             button_OTA_mode.Enabled = false;
             button_OTA_mode.FlatStyle = FlatStyle.Popup;
-            button_OTA_mode.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button_OTA_mode.ForeColor = Color.White;
+            button_OTA_mode.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button_OTA_mode.ForeColor = Color.Azure;
             button_OTA_mode.Location = new Point(17, 26);
             button_OTA_mode.Name = "button_OTA_mode";
-            button_OTA_mode.Size = new Size(147, 40);
+            button_OTA_mode.Size = new Size(172, 39);
             button_OTA_mode.TabIndex = 8;
             button_OTA_mode.Text = "Enter FW Upgrade Mode";
             button_OTA_mode.UseVisualStyleBackColor = false;
@@ -432,11 +432,12 @@
             // lable_dataPackets_Update
             // 
             lable_dataPackets_Update.AutoSize = true;
-            lable_dataPackets_Update.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lable_dataPackets_Update.BackColor = Color.Transparent;
+            lable_dataPackets_Update.Font = new Font("Cascadia Code", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lable_dataPackets_Update.ForeColor = Color.White;
-            lable_dataPackets_Update.Location = new Point(19, 153);
+            lable_dataPackets_Update.Location = new Point(15, 153);
             lable_dataPackets_Update.Name = "lable_dataPackets_Update";
-            lable_dataPackets_Update.Size = new Size(40, 18);
+            lable_dataPackets_Update.Size = new Size(45, 20);
             lable_dataPackets_Update.TabIndex = 7;
             lable_dataPackets_Update.Text = "Idle";
             lable_dataPackets_Update.Visible = false;
@@ -444,24 +445,25 @@
             // lable_progressBar_Percentage
             // 
             lable_progressBar_Percentage.AutoSize = true;
-            lable_progressBar_Percentage.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lable_progressBar_Percentage.ForeColor = Color.White;
-            lable_progressBar_Percentage.Location = new Point(590, 125);
+            lable_progressBar_Percentage.BackColor = Color.Transparent;
+            lable_progressBar_Percentage.Font = new Font("Cascadia Code", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lable_progressBar_Percentage.ForeColor = Color.Transparent;
+            lable_progressBar_Percentage.Location = new Point(580, 153);
             lable_progressBar_Percentage.Name = "lable_progressBar_Percentage";
-            lable_progressBar_Percentage.Size = new Size(24, 18);
+            lable_progressBar_Percentage.Size = new Size(28, 21);
             lable_progressBar_Percentage.TabIndex = 6;
             lable_progressBar_Percentage.Text = "0%";
             lable_progressBar_Percentage.Visible = false;
             // 
             // button_upgrade
             // 
-            button_upgrade.Anchor = AnchorStyles.None;
+            button_upgrade.Anchor = AnchorStyles.Top;
             button_upgrade.BackColor = Color.FromArgb(46, 46, 40);
             button_upgrade.Enabled = false;
             button_upgrade.FlatStyle = FlatStyle.Popup;
             button_upgrade.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
             button_upgrade.ForeColor = Color.Azure;
-            button_upgrade.Location = new Point(234, 187);
+            button_upgrade.Location = new Point(246, 187);
             button_upgrade.Name = "button_upgrade";
             button_upgrade.Size = new Size(137, 39);
             button_upgrade.TabIndex = 2;
@@ -471,11 +473,11 @@
             // 
             // progressBar
             // 
-            progressBar.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            progressBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.BackColor = Color.White;
             progressBar.Location = new Point(17, 118);
             progressBar.Name = "progressBar";
-            progressBar.Size = new Size(570, 32);
+            progressBar.Size = new Size(595, 32);
             progressBar.TabIndex = 5;
             // 
             // tabPage_test_device
@@ -645,7 +647,7 @@
             // 
             rtbLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbLogs.BackColor = Color.FromArgb(17, 17, 17);
-            rtbLogs.Font = new Font("Segoe UI Semibold", 12.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            rtbLogs.Font = new Font("Consolas", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             rtbLogs.ForeColor = Color.FromArgb(19, 154, 14);
             rtbLogs.Location = new Point(251, 8);
             rtbLogs.Name = "rtbLogs";
