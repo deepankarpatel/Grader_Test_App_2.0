@@ -20,9 +20,9 @@ namespace Grader_Test_APP_v2._0
         private bool _deviceStatusReceived = false;
         private bool _radioStatusReceived = false;
         private bool _constellationStausRecieved = false;
-        private bool _configBaseStatusReceived = false;
-        private bool _configRoverStatusReceived = false;
-        private bool _TestRunning = false;
+        //private bool _configBaseStatusReceived = false;
+        //private bool _configRoverStatusReceived = false;
+        //private bool _TestRunning = false;
         private bool _galileoEnabled = false;
         private bool _glonassEnabled = false;
         private bool _beidouEnabled = false;
@@ -35,7 +35,7 @@ namespace Grader_Test_APP_v2._0
             ERROR
         }
 
-        // Active test enumeration
+        // Active tests
         private enum ActiveTest
         {
             None,
@@ -493,23 +493,24 @@ namespace Grader_Test_APP_v2._0
 
                 UI(() =>
                 {
-                    // Calculate percentage
                     int percent = (int)(offset * 100 / firmwareData.Length);
 
-                    // Update UI every loop 
                     UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
 
-                    // Log ONLY when percent changes AND is multiple of 10
-                    if (percent != _lastLoggedFwPercent && percent % 5 == 0)
+                    if (!rtbLogs.Text.Contains("Firmware data sent:"))
                     {
                         AppendLog($"Firmware data sent: {percent}%", LogLevel.INFO);
-                        _lastLoggedFwPercent = percent;
+                    }
+                    else
+                    {
+                        rtbLogs.Text = System.Text.RegularExpressions.Regex.Replace(
+                            rtbLogs.Text,
+                            @"Firmware data sent: \d+%",
+                            $"Firmware data sent: {percent}%"
+                        );
                     }
 
-                    UpdateStatus(
-                        $"Sending firmware data... ({offset}/{firmwareData.Length} bytes)",
-                        percent
-                    );
+                    _lastLoggedFwPercent = percent;
                 });
 
                 Thread.Sleep(50);
@@ -824,7 +825,7 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
             StopAllTests();
             AttachRxHandler();
-            _configBaseStatusReceived = false;
+            //_configBaseStatusReceived = false;
             _currentTest = ActiveTest.ConfigBase;
             ConfigureBaseCommand();
         }
@@ -834,7 +835,7 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
             StopAllTests();
             AttachRxHandler();
-            _configRoverStatusReceived = false;
+            //_configRoverStatusReceived = false;
             _currentTest = ActiveTest.ConfigRover;
             ConfigureRoverCommand();
         }
@@ -1076,13 +1077,13 @@ namespace Grader_Test_APP_v2._0
                         break;
 
                     case 2:
-                        _configBaseStatusReceived = true;
+                        //_configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop Config Base test
                         AppendLog("BASE CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
 
                     case 3:
-                        _configBaseStatusReceived = true;
+                        //_configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop config Rover test
                         AppendLog("Rover CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
@@ -1258,7 +1259,7 @@ namespace Grader_Test_APP_v2._0
 
             _galileoEnabled = galileo;
             _glonassEnabled = glonass;
-            _beidouEnabled = beidou;
+            _beidouEnabled  = beidou;
 
             AppendLog("===== CONSTELLATION STATUS (CMD 12) =====", LogLevel.INFO);
             AppendLog($"GALILEO : {(galileo ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
