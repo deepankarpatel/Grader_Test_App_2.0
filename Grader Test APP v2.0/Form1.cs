@@ -563,8 +563,6 @@ namespace Grader_Test_APP_v2._0
                 );
             });
 
-
-
             AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
 
             // Confirming the update is done or no test is active
@@ -785,7 +783,6 @@ namespace Grader_Test_APP_v2._0
             // rtbLogs.Clear();
             _deviceStatusReceived = false;
             _currentTest = ActiveTest.GNSS;
-
 
             AppendLog("GNSS TEST STARTED", LogLevel.INFO);
             //LogConnectionInfo();
