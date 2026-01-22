@@ -501,14 +501,14 @@ namespace Grader_Test_APP_v2._0
                     // Log progress if percent changed
                     if (!rtbLogs.Text.Contains("Sending firmware data:"))
                     {
-                        AppendLog($"Sending firmware data: {percent}%", LogLevel.INFO);
+                        AppendLog($"Sending firmware data:{percent}%", LogLevel.INFO);
                     }
                     else
                     {
                         rtbLogs.Text = System.Text.RegularExpressions.Regex.Replace(
                          rtbLogs.Text,
-                            @"Sending firmware data: \d+%",
-                            $"Sending firmware data: {percent}%"
+                            @"Sending firmware data:\d+%",
+                            $"Sending firmware data:{percent}%"
                         );
                     }
 
@@ -746,7 +746,7 @@ namespace Grader_Test_APP_v2._0
                         label_fwHeaderCRC.Text = $"Fw Header CRC: N/A";
                         label_FwCalculatedCRC.Text = $"Fw Calculated CRC: 0x{calculatedCrc:X4}";
 
-                        label_BinStatus.Text = "Status: Firmware Loaded Enter Upgrade Mode to Upgrade";
+                        label_BinStatus.Text = "Status: Firmware Loaded Enter Upgrade Mode to Upgrade firmware";
                         label_BinStatus.BackColor = ColorTranslator.FromHtml("#2E7D32");
                         label_BinStatus.ForeColor = Color.White;
 
@@ -1335,7 +1335,7 @@ namespace Grader_Test_APP_v2._0
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                string fileName = $"Device_logs_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string fileName = $"{comboBox_device.Text}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
                 string fullPath = Path.Combine(folder, fileName);
 
                 File.WriteAllText(fullPath, rtbLogs.Text);
