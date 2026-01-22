@@ -40,6 +40,7 @@ namespace Grader_Test_APP_v2._0
         {
             None,
             GNSS,
+            ReadUid,
             Radio,
             Constellation,
             ConfigBase,
@@ -51,6 +52,12 @@ namespace Grader_Test_APP_v2._0
         }
 
         private ActiveTest _currentTest = ActiveTest.None;
+
+        // Device info variables
+        private string _deviceUid = "";
+        private string _deviceImei = "";
+        private string _deviceModel = "";
+        private string _deviceProductId = "";
 
         // ================= Test Device TAB veriables =================
 
@@ -282,6 +289,11 @@ namespace Grader_Test_APP_v2._0
                     AttachRxHandler(); // attach data received handler
                     rtbLogs.Clear();
 
+                    _currentTest = ActiveTest.ReadUid;
+                    ReadUid();
+                    AppendLog("Reading Device UID...", LogLevel.INFO);
+
+
                     UI(() =>
                     {
                         label_message.Text = "Device Connected";
@@ -298,8 +310,8 @@ namespace Grader_Test_APP_v2._0
                         comboBox_baudrate.Enabled = false;
                         comboBox_device.Enabled = false;
                     });
-
-                    LogConnectionInfo(); // log connection info
+                   
+                    //LogConnectionInfo(); // log connection info
                 }
 
             }
@@ -976,6 +988,11 @@ namespace Grader_Test_APP_v2._0
             SendCommand("#15,2,BEIDOU,0*3A\r\n", "CMD Disable Beidou Please wait...");
         }
 
+        private void ReadUid()
+        {
+            SendCommand("#36,0*19\r\n", "CMD 36 sent");
+        }
+
 
         // send command helper function
         private void SendCommand(string cmd, string logText)
@@ -1115,6 +1132,28 @@ namespace Grader_Test_APP_v2._0
                             _currentTest = ActiveTest.None;
                         }
                         break;
+
+                    case 36:
+                        {
+                            if (_currentTest != ActiveTest.ReadUid)
+                                break;
+
+                            if (f.Length < 6)
+                            {
+                                AppendLog("Incomplete CMD-36 packet", LogLevel.ERROR);
+                                break;
+                            }
+
+                            _deviceUid = f[2];
+                            _deviceImei = f[3];
+                            _deviceModel = f[4];
+                            _deviceProductId = f[5];
+
+                            LogConnectionInfo();
+
+                            _currentTest = ActiveTest.None;
+                            break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -1256,9 +1295,9 @@ namespace Grader_Test_APP_v2._0
                 return;
             }
             // Parse constellation statuses
-            bool galileo = f[2] == "1";
-            bool glonass = f[3] == "1";
-            bool beidou = f[4] == "1";
+            bool galileo = f[2] == "";
+            bool glonass = f[3] == "";
+            bool beidou = f[4] == "";
 
             _galileoEnabled = galileo;
             _glonassEnabled = glonass;
@@ -1270,6 +1309,39 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"BEIDOU  : {(beidou  ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
             AppendLog("========================================", LogLevel.INFO);
         }
+
+
+
+        // log connection info function
+        private void LogConnectionInfo()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(LogConnectionInfo));
+                return;
+            }
+
+            AppendLog("====== CONNECTION INFO =======", LogLevel.INFO);
+
+            AppendLog($"Device     : {comboBox_device.Text}", LogLevel.INFO);
+            AppendLog($"Port       : {comboBox_port.Text}", LogLevel.INFO);
+            AppendLog($"Baudrate   : {comboBox_baudrate.Text}", LogLevel.INFO);
+
+            AppendLog($"UID        : {(string.IsNullOrWhiteSpace(_deviceUid) ? "Not Read" : _deviceUid)}",
+                string.IsNullOrWhiteSpace(_deviceUid) ? LogLevel.WARNING : LogLevel.INFO);
+
+            AppendLog($"IMEI       : {(string.IsNullOrWhiteSpace(_deviceImei) ? "Not Read" : _deviceImei)}",
+                string.IsNullOrWhiteSpace(_deviceImei) ? LogLevel.WARNING : LogLevel.INFO);
+
+            AppendLog($"Model      : {(string.IsNullOrWhiteSpace(_deviceModel) ? "Not Read" : _deviceModel)}",
+                string.IsNullOrWhiteSpace(_deviceModel) ? LogLevel.WARNING : LogLevel.INFO);
+
+            AppendLog($"Product ID : {(string.IsNullOrWhiteSpace(_deviceProductId) ? "Not Read" : _deviceProductId)}",
+                string.IsNullOrWhiteSpace(_deviceProductId) ? LogLevel.WARNING : LogLevel.INFO);
+
+            AppendLog("==============================", LogLevel.INFO);
+        }
+
 
         // stop all tests function, stop all test before starting a new one.
         private void StopAllTests()
@@ -1307,18 +1379,6 @@ namespace Grader_Test_APP_v2._0
             rtbLogs.ScrollToCaret();
         }
 
-        // log connection info function
-        private void LogConnectionInfo()
-        {
-            AppendLog("====== CONNECTION INFO =======", LogLevel.INFO);
-
-            AppendLog($"Device     : {(comboBox_device.Text)}", LogLevel.INFO);
-            AppendLog($"Port       : {(comboBox_port.Text)}", LogLevel.INFO);
-            AppendLog($"Baudrate   : {(comboBox_baudrate.Text)}", LogLevel.INFO);
-
-            AppendLog("==============================", LogLevel.INFO);
-        }
-
         // Save logs to file button on click
         private void button_saveLogs_Click(object sender, EventArgs e)
         {
@@ -1335,7 +1395,7 @@ namespace Grader_Test_APP_v2._0
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                string fileName = $"{comboBox_device.Text}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string fileName = $"{_deviceModel}_{_deviceUid}_{DateTime.Now:ddMMyyyy_HHmmss}.txt";
                 string fullPath = Path.Combine(folder, fileName);
 
                 File.WriteAllText(fullPath, rtbLogs.Text);
