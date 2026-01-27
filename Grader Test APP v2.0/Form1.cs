@@ -1,6 +1,7 @@
 ﻿using System.IO.Ports;
 using System.IO;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 
 namespace Grader_Test_APP_v2._0
@@ -48,6 +49,7 @@ namespace Grader_Test_APP_v2._0
             gallilio,
             glonass,
             beidou,
+            Reset,
             FirmwareUpgrade
         }
 
@@ -68,14 +70,6 @@ namespace Grader_Test_APP_v2._0
         // Firmware constants
         const byte FW_TYPE_APP = 0xAA;
         const byte FW_FILE_BIN = 0x11;
-
-        // DataReceived event handler
-        private void AttachRxHandler()
-        {
-            serialport1.DataReceived -= SerialPort_DataReceived;
-            serialport1.DataReceived += SerialPort_DataReceived;
-        }
-        
 
         // CRC16 table for checksum calculation
         static readonly ushort[] crc16_table = new ushort[]
@@ -226,7 +220,6 @@ namespace Grader_Test_APP_v2._0
             String command = "#42,1,0*07\r\n";
             serialport1.Write(command);
 
-
         }
 
         // Button refresh on click
@@ -310,11 +303,11 @@ namespace Grader_Test_APP_v2._0
                         comboBox_baudrate.Enabled = false;
                         comboBox_device.Enabled = false;
                     });
-                   
-                    //LogConnectionInfo(); // log connection info
+
                 }
 
             }
+            //Exception handling for port connection
             catch (UnauthorizedAccessException)
             {
                 label_message.Text = "Unauthrized Access";
@@ -463,7 +456,7 @@ namespace Grader_Test_APP_v2._0
                 // Calculate checksum
                 ushort dataChecksum = 0;
                 foreach (byte b in dataPayload)
-                dataChecksum += b;
+                    dataChecksum += b;
 
                 // Construct DATA packet
                 List<byte> dataPacket = new List<byte>();
@@ -513,7 +506,7 @@ namespace Grader_Test_APP_v2._0
                     // Log progress if percent changed
                     if (!rtbLogs.Text.Contains("Sending firmware data:"))
                     {
-                        AppendLog($"Sending firmware data:{percent}%", LogLevel.INFO);
+                        AppendLog($"Sending firmware data:{percent}%", LogLevel.INFO); // log
                     }
                     else
                     {
@@ -551,7 +544,7 @@ namespace Grader_Test_APP_v2._0
 
             AppendLog("Sending UPDATE packet", LogLevel.INFO); // log
             AppendLog("Finalizing Update...", LogLevel.INFO); // log
-            
+
             // Send UPDATE packet
             serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
             if (!WaitForUpdateResponse(40000))
@@ -578,12 +571,12 @@ namespace Grader_Test_APP_v2._0
                     MessageBoxIcon.Information
                 );
             });
-            
+
             AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
 
             // Confirming the update is done or no test is active
             _currentTest = ActiveTest.None;
-
+            
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
@@ -820,6 +813,7 @@ namespace Grader_Test_APP_v2._0
             // LogConnectionInfo();
             SendRadioCommand();
         }
+
         // Constellation Test button on click
         private void button_constellation_test_Click(object sender, EventArgs e)
         {
@@ -835,6 +829,7 @@ namespace Grader_Test_APP_v2._0
             SendConstellationCommand();
         }
 
+        // Base Config button on click
         private void button_base_config_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -845,6 +840,7 @@ namespace Grader_Test_APP_v2._0
             ConfigureBaseCommand();
         }
 
+        // Rover Config button on click
         private void button_rover_config_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -855,6 +851,7 @@ namespace Grader_Test_APP_v2._0
             ConfigureRoverCommand();
         }
 
+        // Galileo Enable/Disable button on click
         private void button_gallileo_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -875,6 +872,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
+        // Glonass Enable/Disable button on click
         private void button_glonass_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -895,6 +893,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
+        // Beidou Enable/Disable button on click
         private void button_beidou_Click(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -916,6 +915,21 @@ namespace Grader_Test_APP_v2._0
 
         }
 
+        // Clear Logs button on click
+        private void button_clearLogs_Click(object sender, EventArgs e)
+        {
+            rtbLogs.Clear();
+        }
+
+        private void button_ResetDevice_Click(object sender, EventArgs e)
+        {
+            if (!EnsurePortOpen()) return;
+            StopAllTests();
+            AttachRxHandler();
+            _currentTest = ActiveTest.Reset;
+            ResetCommand();
+        }
+
         // Make sure that the port is open before sending commands
         private bool EnsurePortOpen()
         {
@@ -927,20 +941,22 @@ namespace Grader_Test_APP_v2._0
             return true;
         }
 
-        // All Device Commands
+        // Device Commands
         private void ResetCommand()
         {
-            SendCommand("#1,0,0*2d\r\n", "");
+            SendCommand("#1,0*2D\r\n", "Device Reset CMD sent Please wait...");
         }
 
         private void SendGnssCommand()
         {
             SendCommand("#6,14,0,1,45,0,0,31,0,0,1,1,0,0,0,0*1D\r\n", "CMD 6 sent Please wait...");
+            //SendCommand("#6,1,0*37\r\n", "CMD 6 sent Please wait...");
         }
 
         private void SendRadioCommand()
         {
             SendCommand("#9,4,4340125,TRIMMK3-19200,L,2*4A\r\n", "CMD 9 sent Please wait...");
+            //SendCommand("#9,24,4340125,TRIMMK3-9600,L,2*4D\r\n", "CMD 9 sent Please wait..."); 
         }
 
         private void SendConstellationCommand()
@@ -950,12 +966,12 @@ namespace Grader_Test_APP_v2._0
 
         private void ConfigureBaseCommand()
         {
-            SendCommand("#2,8,0,1,15,0,0,0,1,1000*23\r\n", "CMD 2 Send Please wait...");
+            SendCommand("#2,8,0,1,15,0,0,0,1,1000*23\r\n", "CMD 2 sent Please wait...");
         }
 
         private void ConfigureRoverCommand()
         {
-            SendCommand("#3,3,1,15,1*04\r\n", "CMD 3 Send Please Wait...");
+            SendCommand("#3,3,1,15,1*04\r\n", "CMD 3 sent Please Wait...");
         }
 
         private void EnableGallileoCommand()
@@ -975,24 +991,23 @@ namespace Grader_Test_APP_v2._0
 
         private void DisableGlonasssCommand()
         {
-            SendCommand("#15,2,GLONASS,0*61\r\n", "CMD Disable Glonass Please wait...");
+            SendCommand("#15,2,GLONASS,0*61\r\n", "CMD Disable Glonass sent Please wait...");
         }
 
         private void EnableBeidouCommand()
         {
-            SendCommand("#15,2,BEIDOU,1*3B\r\n", "CMD Enable Beidou Please wait...");
+            SendCommand("#15,2,BEIDOU,1*3B\r\n", "CMD Enable Beidou sent Please wait...");
         }
 
         private void DisableBeidouCommand()
         {
-            SendCommand("#15,2,BEIDOU,0*3A\r\n", "CMD Disable Beidou Please wait...");
+            SendCommand("#15,2,BEIDOU,0*3A\r\n", "CMD Disable Beidou sent Please wait...");
         }
 
         private void ReadUid()
         {
             SendCommand("#36,0*19\r\n", "CMD 36 sent");
         }
-
 
         // send command helper function
         private void SendCommand(string cmd, string logText)
@@ -1008,6 +1023,13 @@ namespace Grader_Test_APP_v2._0
             {
                 AppendLog("Send failed: " + ex.Message, LogLevel.ERROR);
             }
+        }
+
+        // Attach data received handler
+        private void AttachRxHandler()
+        {
+            serialport1.DataReceived -= SerialPort_DataReceived;
+            serialport1.DataReceived += SerialPort_DataReceived;
         }
 
         // Data received event handler
@@ -1026,8 +1048,7 @@ namespace Grader_Test_APP_v2._0
             catch { }
         }
 
-
-        // Rx buffer processing funstion
+        // Rx buffer processing function
         private void ProcessRxBuffer()
         {
             string buffer = _rxBuffer.ToString();
@@ -1049,7 +1070,7 @@ namespace Grader_Test_APP_v2._0
             _rxBuffer.Append(buffer);
         }
 
-        // device packets parsing function
+        // Device packet parsing function
         private void ParseDevicePacket(string packet)
         {
             try
@@ -1066,7 +1087,7 @@ namespace Grader_Test_APP_v2._0
 
                 switch (cmd)
                 {
-                    case 6:
+                    case 6: // GNSS Status
                         if (_currentTest == ActiveTest.GNSS && !_deviceStatusReceived)
                         {
                             ShowDeviceStatus(f);
@@ -1076,7 +1097,7 @@ namespace Grader_Test_APP_v2._0
                         }
                         break;
 
-                    case 9:
+                    case 9: // Radio Status
                         if (_currentTest == ActiveTest.Radio && !_radioStatusReceived)
                         {
                             ShowRadioStatus(f);
@@ -1086,7 +1107,7 @@ namespace Grader_Test_APP_v2._0
                         }
                         break;
 
-                    case 12:
+                    case 12: // Constellation Status
                         if (_currentTest == ActiveTest.Constellation && !_constellationStausRecieved)
                         {
                             ShowConstellationStatus(f);
@@ -1096,13 +1117,13 @@ namespace Grader_Test_APP_v2._0
                         }
                         break;
 
-                    case 2:
+                    case 2: // Config Base ACK
                         //_configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop Config Base test
                         AppendLog("BASE CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
 
-                    case 3:
+                    case 3: // Config Rover ACK
                         //_configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop config Rover test
                         AppendLog("Rover CONFIGURATION ACK RECEIVED", LogLevel.INFO);
@@ -1133,7 +1154,7 @@ namespace Grader_Test_APP_v2._0
                         }
                         break;
 
-                    case 36:
+                    case 36:  // Read UID Response
                         {
                             if (_currentTest != ActiveTest.ReadUid)
                                 break;
@@ -1154,6 +1175,12 @@ namespace Grader_Test_APP_v2._0
                             _currentTest = ActiveTest.None;
                             break;
                         }
+                    case 1:  // Device Reset ACK
+                        {
+                            _currentTest = ActiveTest.None;
+                            AppendLog("Device Reset ACK RECEIVED", LogLevel.INFO);
+                            break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -1162,7 +1189,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
-        // display GNSS device status function
+        // display GNSS device status on log
         private void ShowDeviceStatus(string[] f)
         {
             // Expect: CMD + LEN + 14 payload fields = 16
@@ -1234,7 +1261,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
-        // display Radio status function
+        // display Radio status on log
         private void ShowRadioStatus(string[] f)
         {
             int len = int.Parse(f[1]);
@@ -1298,19 +1325,17 @@ namespace Grader_Test_APP_v2._0
             bool galileo = f[2] == "";
             bool glonass = f[3] == "";
             bool beidou = f[4] == "";
-
+             
             _galileoEnabled = galileo;
             _glonassEnabled = glonass;
-            _beidouEnabled  = beidou;
+            _beidouEnabled = beidou;
 
             AppendLog("===== CONSTELLATION STATUS (CMD 12) =====", LogLevel.INFO);
-            AppendLog($"GALILEO : {(galileo ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
-            AppendLog($"GLONASS : {(glonass ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
-            AppendLog($"BEIDOU  : {(beidou  ?  "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"GALILEO : {(galileo ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"GLONASS : {(glonass ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
+            AppendLog($"BEIDOU  : {(beidou ? "ENABLED" : "DISABLED")}", LogLevel.INFO);
             AppendLog("========================================", LogLevel.INFO);
         }
-
-
 
         // log connection info function
         private void LogConnectionInfo()
@@ -1327,6 +1352,7 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"Port       : {comboBox_port.Text}", LogLevel.INFO);
             AppendLog($"Baudrate   : {comboBox_baudrate.Text}", LogLevel.INFO);
 
+            // show device info
             AppendLog($"UID        : {(string.IsNullOrWhiteSpace(_deviceUid) ? "Not Read" : _deviceUid)}",
                 string.IsNullOrWhiteSpace(_deviceUid) ? LogLevel.WARNING : LogLevel.INFO);
 
@@ -1375,7 +1401,7 @@ namespace Grader_Test_APP_v2._0
             rtbLogs.SelectionStart = rtbLogs.TextLength;
             rtbLogs.SelectionColor = c;
             rtbLogs.AppendText($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {level}: {msg}\n");
-            
+
             rtbLogs.ScrollToCaret();
         }
 
@@ -1406,7 +1432,7 @@ namespace Grader_Test_APP_v2._0
             {
                 AppendLog("Log save failed: " + ex.Message, LogLevel.ERROR);
             }
-        }
+        } 
     }
 }
 

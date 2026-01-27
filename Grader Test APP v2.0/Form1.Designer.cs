@@ -62,6 +62,7 @@
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
             panel4 = new Panel();
+            button_clearLogs = new Button();
             button_saveLogs = new Button();
             button_baidu = new Button();
             button_gallileo = new Button();
@@ -72,6 +73,7 @@
             button_radio_test = new Button();
             button_gnss_test = new Button();
             rtbLogs = new RichTextBox();
+            button_ResetDevice = new Button();
             tab_all_components.SuspendLayout();
             tabPage_frimware.SuspendLayout();
             panel1.SuspendLayout();
@@ -497,6 +499,8 @@
             panel4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel4.BackColor = Color.FromArgb(34, 34, 34);
             panel4.BorderStyle = BorderStyle.FixedSingle;
+            panel4.Controls.Add(button_ResetDevice);
+            panel4.Controls.Add(button_clearLogs);
             panel4.Controls.Add(button_saveLogs);
             panel4.Controls.Add(button_baidu);
             panel4.Controls.Add(button_gallileo);
@@ -511,6 +515,20 @@
             panel4.Name = "panel4";
             panel4.Size = new Size(233, 628);
             panel4.TabIndex = 6;
+            // 
+            // button_clearLogs
+            // 
+            button_clearLogs.BackColor = Color.FromArgb(50, 50, 50);
+            button_clearLogs.FlatStyle = FlatStyle.Popup;
+            button_clearLogs.Font = new Font("Segoe UI", 9F);
+            button_clearLogs.ForeColor = Color.White;
+            button_clearLogs.Location = new Point(1, 580);
+            button_clearLogs.Name = "button_clearLogs";
+            button_clearLogs.Size = new Size(114, 45);
+            button_clearLogs.TabIndex = 11;
+            button_clearLogs.Text = "Clear Logs";
+            button_clearLogs.UseVisualStyleBackColor = false;
+            button_clearLogs.Click += button_clearLogs_Click;
             // 
             // button_saveLogs
             // 
@@ -571,11 +589,10 @@
             // button_base_config
             // 
             button_base_config.BackColor = Color.FromArgb(50, 50, 50);
-            button_base_config.Dock = DockStyle.Bottom;
             button_base_config.FlatStyle = FlatStyle.Popup;
             button_base_config.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
             button_base_config.ForeColor = Color.White;
-            button_base_config.Location = new Point(0, 526);
+            button_base_config.Location = new Point(0, 240);
             button_base_config.Name = "button_base_config";
             button_base_config.Size = new Size(231, 50);
             button_base_config.TabIndex = 5;
@@ -586,11 +603,10 @@
             // button_rover_config
             // 
             button_rover_config.BackColor = Color.FromArgb(50, 50, 50);
-            button_rover_config.Dock = DockStyle.Bottom;
             button_rover_config.FlatStyle = FlatStyle.Popup;
             button_rover_config.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
             button_rover_config.ForeColor = Color.White;
-            button_rover_config.Location = new Point(0, 576);
+            button_rover_config.Location = new Point(0, 290);
             button_rover_config.Name = "button_rover_config";
             button_rover_config.Size = new Size(231, 50);
             button_rover_config.TabIndex = 1;
@@ -655,6 +671,20 @@
             rtbLogs.Size = new Size(731, 627);
             rtbLogs.TabIndex = 6;
             rtbLogs.Text = "";
+            // 
+            // button_ResetDevice
+            // 
+            button_ResetDevice.BackColor = Color.FromArgb(50, 50, 50);
+            button_ResetDevice.FlatStyle = FlatStyle.Popup;
+            button_ResetDevice.Font = new Font("Segoe UI", 9F);
+            button_ResetDevice.ForeColor = Color.White;
+            button_ResetDevice.Location = new Point(115, 580);
+            button_ResetDevice.Name = "button_ResetDevice";
+            button_ResetDevice.Size = new Size(114, 45);
+            button_ResetDevice.TabIndex = 12;
+            button_ResetDevice.Text = "Reset Device";
+            button_ResetDevice.UseVisualStyleBackColor = false;
+            button_ResetDevice.Click += button_ResetDevice_Click;
             // 
             // Form1
             // 
@@ -728,5 +758,7 @@
         private Button button_baidu;
         private Button button_gallileo;
         private Button button_glonass;
+        private Button button_clearLogs;
+        private Button button_ResetDevice;
     }
 }
