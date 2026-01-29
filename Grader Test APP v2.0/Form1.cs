@@ -18,9 +18,9 @@ namespace Grader_Test_APP_v2._0
         private readonly StringBuilder _rxBuffer = new StringBuilder();
 
         // Flags to track test state
-        private bool _deviceStatusReceived = false;
-        private bool _radioStatusReceived = false;
-        private bool _constellationStausRecieved = false;
+        //private bool _deviceStatusReceived = false;
+        //private bool _radioStatusReceived = false;
+        //private bool _constellationStausRecieved = false;
         //private bool _configBaseStatusReceived = false;
         //private bool _configRoverStatusReceived = false;
         //private bool _TestRunning = false;
@@ -50,6 +50,7 @@ namespace Grader_Test_APP_v2._0
             glonass,
             beidou,
             Reset,
+            Custom,
             FirmwareUpgrade
         }
 
@@ -236,6 +237,11 @@ namespace Grader_Test_APP_v2._0
                 label_message.ForeColor = Color.Black;
                 progressBar.Value = 0;
             });
+        }
+
+        private void comboBox_port_DropDown(object sender, EventArgs e)
+        {
+            refresh_port();
         }
 
         // Port Connect button on click
@@ -576,7 +582,7 @@ namespace Grader_Test_APP_v2._0
 
             // Confirming the update is done or no test is active
             _currentTest = ActiveTest.None;
-            
+
             serialport1.DiscardInBuffer();
             serialport1.DiscardOutBuffer();
 
@@ -790,7 +796,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             // rtbLogs.Clear();
-            _deviceStatusReceived = false;
+            //_deviceStatusReceived = false;
             _currentTest = ActiveTest.GNSS;
 
             AppendLog("GNSS TEST STARTED", LogLevel.INFO);
@@ -806,7 +812,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             // rtbLogs.Clear();
-            _radioStatusReceived = false;
+           // _radioStatusReceived = false;
             _currentTest = ActiveTest.Radio;
 
             AppendLog("RADIO TEST STARTED", LogLevel.INFO);
@@ -821,7 +827,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             //  rtbLogs.Clear();
-            _constellationStausRecieved = false;
+            //_constellationStausRecieved = false;
             _currentTest = ActiveTest.Constellation;
 
             AppendLog("CONSTELLATION TEST STARTED", LogLevel.INFO);
@@ -1076,9 +1082,21 @@ namespace Grader_Test_APP_v2._0
             try
             {
                 if (_currentTest == ActiveTest.None)
-                    return; // ignore auto-streamed data
-
+                {
+                    return;
+                }
+                // Log received packet
                 AppendLog("RX: " + packet, LogLevel.INFO);
+
+                // Handle Custom command response
+                if (_currentTest == ActiveTest.Custom)
+                {
+                    _currentTest = ActiveTest.None;
+                    serialport1.DiscardInBuffer();
+
+                    AppendLog("Command response received", LogLevel.INFO);
+                    return;
+                }
 
                 string[] parts = packet.Substring(1).Split('*');
                 string[] f = parts[0].Split(',');
@@ -1088,30 +1106,30 @@ namespace Grader_Test_APP_v2._0
                 switch (cmd)
                 {
                     case 6: // GNSS Status
-                        if (_currentTest == ActiveTest.GNSS && !_deviceStatusReceived)
+                        if (_currentTest == ActiveTest.GNSS) //&& !_deviceStatusReceived)
                         {
                             ShowDeviceStatus(f);
-                            _deviceStatusReceived = true;
+                            //_deviceStatusReceived = true;
                             _currentTest = ActiveTest.None; // stop GNSS test
                             AppendLog("GNSS STATUS RECEIVED", LogLevel.INFO);
                         }
                         break;
 
                     case 9: // Radio Status
-                        if (_currentTest == ActiveTest.Radio && !_radioStatusReceived)
+                        if (_currentTest == ActiveTest.Radio) //&& !_radioStatusReceived)
                         {
                             ShowRadioStatus(f);
-                            _radioStatusReceived = true;
+                            //_radioStatusReceived = true;
                             _currentTest = ActiveTest.None; // stop Radio test
                             AppendLog("RADIO STATUS RECEIVED", LogLevel.INFO);
                         }
                         break;
 
                     case 12: // Constellation Status
-                        if (_currentTest == ActiveTest.Constellation && !_constellationStausRecieved)
+                        if (_currentTest == ActiveTest.Constellation) // && !_constellationStausRecieved)
                         {
                             ShowConstellationStatus(f);
-                            _constellationStausRecieved = true;
+                            //_constellationStausRecieved = true;
                             _currentTest = ActiveTest.None; // stop Constellation test
                             AppendLog("CONSTELLATION STATUS RECEIVED", LogLevel.INFO);
                         }
@@ -1325,7 +1343,7 @@ namespace Grader_Test_APP_v2._0
             bool galileo = f[2] == "";
             bool glonass = f[3] == "";
             bool beidou = f[4] == "";
-             
+
             _galileoEnabled = galileo;
             _glonassEnabled = glonass;
             _beidouEnabled = beidou;
@@ -1373,13 +1391,13 @@ namespace Grader_Test_APP_v2._0
         private void StopAllTests()
         {
             _currentTest = ActiveTest.None;
-            _deviceStatusReceived = false;
-            _radioStatusReceived = false;
+            //_deviceStatusReceived = false;
+            //_radioStatusReceived = false;
 
             // ensure clean RX state
             serialport1.DataReceived -= SerialPort_DataReceived;
             serialport1.DiscardInBuffer();
-        }
+        } 
 
         // append log function with log level colors
         private void AppendLog(string msg, LogLevel level)
@@ -1397,7 +1415,7 @@ namespace Grader_Test_APP_v2._0
                 LogLevel.ERROR => Color.Red,
                 _ => Color.White
             };
-
+            // Append log with timestamp and color
             rtbLogs.SelectionStart = rtbLogs.TextLength;
             rtbLogs.SelectionColor = c;
             rtbLogs.AppendText($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {level}: {msg}\n");
@@ -1432,7 +1450,78 @@ namespace Grader_Test_APP_v2._0
             {
                 AppendLog("Log save failed: " + ex.Message, LogLevel.ERROR);
             }
-        } 
+        }
+
+        private void btnCustomCommand_Click_1(object sender, EventArgs e)
+        {
+            if (!EnsurePortOpen()) return;
+
+            using (var dlg = new CustomCommandForm())
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    if (!string.IsNullOrWhiteSpace(dlg.EnteredCommand))
+                    {
+                        SendUserCommand(dlg.EnteredCommand, autoChecksum: true);
+                    }
+                }
+            }
+        }
+
+        // ===== Custom User Command Support =====
+
+        private void SendUserCommand(string rawCmd, bool autoChecksum = true)
+        {
+
+          try
+            {
+                // Block during firmware upgrade
+                if (_currentTest == ActiveTest.FirmwareUpgrade)
+                {
+                    AppendLog("Cannot send custom command during firmware upgrade", LogLevel.WARNING);
+                    return;
+                }
+
+                StopAllTests();
+                _currentTest = ActiveTest.Custom;   
+                AttachRxHandler();
+
+                string fullCmd = rawCmd.Trim();
+
+                // Auto checksum for #... protocol
+                if (autoChecksum && fullCmd.StartsWith("#") && !fullCmd.Contains("*"))
+                {
+                    fullCmd = BuildCommandWithChecksum(fullCmd);
+                }
+                else if (!fullCmd.EndsWith("\r\n"))
+                {
+                    fullCmd += "\r\n";
+                }
+
+                serialport1.DiscardInBuffer();
+                serialport1.DiscardOutBuffer();
+                serialport1.Write(fullCmd);
+
+                AppendLog("USER TX: " + fullCmd.Trim(), LogLevel.INFO);
+            }
+            catch (Exception ex)
+            {
+                AppendLog("User command send failed: " + ex.Message, LogLevel.ERROR);
+            }
+            
+        }
+
+        private string BuildCommandWithChecksum(string body)
+        {
+            int cs = 0;
+
+            for (int i = 1; i < body.Length; i++)
+            {
+                cs ^= body[i];
+            }
+
+            return $"{body}*{cs:X2}\r\n";
+        }
     }
 }
 

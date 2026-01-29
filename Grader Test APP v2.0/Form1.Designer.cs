@@ -62,6 +62,8 @@
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
             panel4 = new Panel();
+            btnCustomCommand = new Button();
+            button_ResetDevice = new Button();
             button_clearLogs = new Button();
             button_saveLogs = new Button();
             button_baidu = new Button();
@@ -73,7 +75,6 @@
             button_radio_test = new Button();
             button_gnss_test = new Button();
             rtbLogs = new RichTextBox();
-            button_ResetDevice = new Button();
             tab_all_components.SuspendLayout();
             tabPage_frimware.SuspendLayout();
             panel1.SuspendLayout();
@@ -260,6 +261,7 @@
             comboBox_port.Size = new Size(154, 28);
             comboBox_port.TabIndex = 3;
             comboBox_port.Text = "Select";
+            comboBox_port.DropDown += comboBox_port_DropDown;
             // 
             // comboBox_device
             // 
@@ -499,6 +501,7 @@
             panel4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel4.BackColor = Color.FromArgb(34, 34, 34);
             panel4.BorderStyle = BorderStyle.FixedSingle;
+            panel4.Controls.Add(btnCustomCommand);
             panel4.Controls.Add(button_ResetDevice);
             panel4.Controls.Add(button_clearLogs);
             panel4.Controls.Add(button_saveLogs);
@@ -510,21 +513,52 @@
             panel4.Controls.Add(button_constellation_test);
             panel4.Controls.Add(button_radio_test);
             panel4.Controls.Add(button_gnss_test);
+            panel4.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             panel4.ForeColor = SystemColors.ControlText;
             panel4.Location = new Point(8, 7);
             panel4.Name = "panel4";
             panel4.Size = new Size(233, 628);
             panel4.TabIndex = 6;
             // 
+            // btnCustomCommand
+            // 
+            btnCustomCommand.BackColor = Color.FromArgb(50, 50, 50);
+            btnCustomCommand.FlatStyle = FlatStyle.Flat;
+            btnCustomCommand.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnCustomCommand.ForeColor = Color.White;
+            btnCustomCommand.Location = new Point(0, 240);
+            btnCustomCommand.Name = "btnCustomCommand";
+            btnCustomCommand.Size = new Size(231, 50);
+            btnCustomCommand.TabIndex = 13;
+            btnCustomCommand.Text = "Send Custom Command";
+            btnCustomCommand.UseVisualStyleBackColor = false;
+            btnCustomCommand.Click += btnCustomCommand_Click_1;
+            // 
+            // button_ResetDevice
+            // 
+            button_ResetDevice.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            button_ResetDevice.BackColor = Color.FromArgb(50, 50, 50);
+            button_ResetDevice.FlatStyle = FlatStyle.Flat;
+            button_ResetDevice.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            button_ResetDevice.ForeColor = Color.White;
+            button_ResetDevice.Location = new Point(114, 581);
+            button_ResetDevice.Name = "button_ResetDevice";
+            button_ResetDevice.Size = new Size(117, 45);
+            button_ResetDevice.TabIndex = 12;
+            button_ResetDevice.Text = "Reset Device";
+            button_ResetDevice.UseVisualStyleBackColor = false;
+            button_ResetDevice.Click += button_ResetDevice_Click;
+            // 
             // button_clearLogs
             // 
+            button_clearLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             button_clearLogs.BackColor = Color.FromArgb(50, 50, 50);
-            button_clearLogs.FlatStyle = FlatStyle.Popup;
-            button_clearLogs.Font = new Font("Segoe UI", 9F);
+            button_clearLogs.FlatStyle = FlatStyle.Flat;
+            button_clearLogs.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_clearLogs.ForeColor = Color.White;
-            button_clearLogs.Location = new Point(1, 580);
+            button_clearLogs.Location = new Point(0, 581);
             button_clearLogs.Name = "button_clearLogs";
-            button_clearLogs.Size = new Size(114, 45);
+            button_clearLogs.Size = new Size(117, 45);
             button_clearLogs.TabIndex = 11;
             button_clearLogs.Text = "Clear Logs";
             button_clearLogs.UseVisualStyleBackColor = false;
@@ -533,12 +567,12 @@
             // button_saveLogs
             // 
             button_saveLogs.BackColor = Color.FromArgb(50, 50, 50);
-            button_saveLogs.FlatStyle = FlatStyle.Popup;
-            button_saveLogs.Font = new Font("Segoe UI", 9F);
+            button_saveLogs.FlatStyle = FlatStyle.Flat;
+            button_saveLogs.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_saveLogs.ForeColor = Color.White;
             button_saveLogs.Location = new Point(115, 195);
             button_saveLogs.Name = "button_saveLogs";
-            button_saveLogs.Size = new Size(115, 45);
+            button_saveLogs.Size = new Size(116, 45);
             button_saveLogs.TabIndex = 10;
             button_saveLogs.Text = "Save Logs";
             button_saveLogs.UseVisualStyleBackColor = false;
@@ -547,12 +581,12 @@
             // button_baidu
             // 
             button_baidu.BackColor = Color.FromArgb(50, 50, 50);
-            button_baidu.FlatStyle = FlatStyle.Popup;
-            button_baidu.Font = new Font("Segoe UI", 9F);
+            button_baidu.FlatStyle = FlatStyle.Flat;
+            button_baidu.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_baidu.ForeColor = Color.White;
-            button_baidu.Location = new Point(1, 195);
+            button_baidu.Location = new Point(0, 195);
             button_baidu.Name = "button_baidu";
-            button_baidu.Size = new Size(114, 45);
+            button_baidu.Size = new Size(115, 45);
             button_baidu.TabIndex = 9;
             button_baidu.Text = "Enable/Disable Beidou";
             button_baidu.UseVisualStyleBackColor = false;
@@ -561,12 +595,12 @@
             // button_gallileo
             // 
             button_gallileo.BackColor = Color.FromArgb(50, 50, 50);
-            button_gallileo.FlatStyle = FlatStyle.Popup;
-            button_gallileo.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            button_gallileo.FlatStyle = FlatStyle.Flat;
+            button_gallileo.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_gallileo.ForeColor = Color.White;
-            button_gallileo.Location = new Point(1, 150);
+            button_gallileo.Location = new Point(0, 150);
             button_gallileo.Name = "button_gallileo";
-            button_gallileo.Size = new Size(114, 45);
+            button_gallileo.Size = new Size(115, 45);
             button_gallileo.TabIndex = 8;
             button_gallileo.Text = "Enable/Disable Gallileo";
             button_gallileo.UseVisualStyleBackColor = false;
@@ -575,12 +609,12 @@
             // button_glonass
             // 
             button_glonass.BackColor = Color.FromArgb(50, 50, 50);
-            button_glonass.FlatStyle = FlatStyle.Popup;
-            button_glonass.Font = new Font("Segoe UI", 9F);
+            button_glonass.FlatStyle = FlatStyle.Flat;
+            button_glonass.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_glonass.ForeColor = Color.White;
             button_glonass.Location = new Point(115, 150);
             button_glonass.Name = "button_glonass";
-            button_glonass.Size = new Size(115, 45);
+            button_glonass.Size = new Size(116, 45);
             button_glonass.TabIndex = 7;
             button_glonass.Text = "Enable/Disable Glonass";
             button_glonass.UseVisualStyleBackColor = false;
@@ -589,10 +623,10 @@
             // button_base_config
             // 
             button_base_config.BackColor = Color.FromArgb(50, 50, 50);
-            button_base_config.FlatStyle = FlatStyle.Popup;
-            button_base_config.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            button_base_config.FlatStyle = FlatStyle.Flat;
+            button_base_config.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_base_config.ForeColor = Color.White;
-            button_base_config.Location = new Point(0, 240);
+            button_base_config.Location = new Point(0, 290);
             button_base_config.Name = "button_base_config";
             button_base_config.Size = new Size(231, 50);
             button_base_config.TabIndex = 5;
@@ -603,10 +637,10 @@
             // button_rover_config
             // 
             button_rover_config.BackColor = Color.FromArgb(50, 50, 50);
-            button_rover_config.FlatStyle = FlatStyle.Popup;
-            button_rover_config.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            button_rover_config.FlatStyle = FlatStyle.Flat;
+            button_rover_config.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_rover_config.ForeColor = Color.White;
-            button_rover_config.Location = new Point(0, 290);
+            button_rover_config.Location = new Point(0, 340);
             button_rover_config.Name = "button_rover_config";
             button_rover_config.Size = new Size(231, 50);
             button_rover_config.TabIndex = 1;
@@ -617,9 +651,8 @@
             // button_constellation_test
             // 
             button_constellation_test.BackColor = Color.FromArgb(50, 50, 50);
-            button_constellation_test.Dock = DockStyle.Top;
-            button_constellation_test.FlatStyle = FlatStyle.Popup;
-            button_constellation_test.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            button_constellation_test.FlatStyle = FlatStyle.Flat;
+            button_constellation_test.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_constellation_test.ForeColor = Color.White;
             button_constellation_test.Location = new Point(0, 100);
             button_constellation_test.Name = "button_constellation_test";
@@ -632,9 +665,8 @@
             // button_radio_test
             // 
             button_radio_test.BackColor = Color.FromArgb(50, 50, 50);
-            button_radio_test.Dock = DockStyle.Top;
-            button_radio_test.FlatStyle = FlatStyle.Popup;
-            button_radio_test.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            button_radio_test.FlatStyle = FlatStyle.Flat;
+            button_radio_test.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_radio_test.ForeColor = Color.White;
             button_radio_test.Location = new Point(0, 50);
             button_radio_test.Name = "button_radio_test";
@@ -647,9 +679,8 @@
             // button_gnss_test
             // 
             button_gnss_test.BackColor = Color.FromArgb(50, 50, 50);
-            button_gnss_test.Dock = DockStyle.Top;
-            button_gnss_test.FlatStyle = FlatStyle.Popup;
-            button_gnss_test.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            button_gnss_test.FlatStyle = FlatStyle.Flat;
+            button_gnss_test.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             button_gnss_test.ForeColor = Color.White;
             button_gnss_test.Location = new Point(0, 0);
             button_gnss_test.Name = "button_gnss_test";
@@ -671,20 +702,6 @@
             rtbLogs.Size = new Size(731, 627);
             rtbLogs.TabIndex = 6;
             rtbLogs.Text = "";
-            // 
-            // button_ResetDevice
-            // 
-            button_ResetDevice.BackColor = Color.FromArgb(50, 50, 50);
-            button_ResetDevice.FlatStyle = FlatStyle.Popup;
-            button_ResetDevice.Font = new Font("Segoe UI", 9F);
-            button_ResetDevice.ForeColor = Color.White;
-            button_ResetDevice.Location = new Point(115, 580);
-            button_ResetDevice.Name = "button_ResetDevice";
-            button_ResetDevice.Size = new Size(114, 45);
-            button_ResetDevice.TabIndex = 12;
-            button_ResetDevice.Text = "Reset Device";
-            button_ResetDevice.UseVisualStyleBackColor = false;
-            button_ResetDevice.Click += button_ResetDevice_Click;
             // 
             // Form1
             // 
@@ -760,5 +777,6 @@
         private Button button_glonass;
         private Button button_clearLogs;
         private Button button_ResetDevice;
+        private Button btnCustomCommand;
     }
 }

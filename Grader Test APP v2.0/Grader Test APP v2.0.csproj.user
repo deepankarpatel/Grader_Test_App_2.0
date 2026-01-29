@@ -4,6 +4,9 @@
     <_LastSelectedProfileId>C:\Users\deepa\source\repos\Grader Test APP v2.0\Grader Test APP v2.0\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="CustomCommandForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
