@@ -52,7 +52,6 @@
             txtCommand.Name = "txtCommand";
             txtCommand.Size = new Size(292, 23);
             txtCommand.TabIndex = 1;
-            txtCommand.TextAlign = HorizontalAlignment.Center;
             // 
             // btnCancel
             // 

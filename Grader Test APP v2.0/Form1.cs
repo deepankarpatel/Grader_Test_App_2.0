@@ -14,6 +14,7 @@ namespace Grader_Test_APP_v2._0
 
 
         // ================= Test Device TAB veriables =================
+        //==============================================================
 
         private readonly StringBuilder _rxBuffer = new StringBuilder();
 
@@ -63,6 +64,7 @@ namespace Grader_Test_APP_v2._0
         private string _deviceProductId = "";
 
         // ================= Test Device TAB veriables =================
+        //==============================================================
 
         //globle variables
         private byte[] firmwareData;
@@ -1468,8 +1470,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
-        // ===== Custom User Command Support =====
-
+        //Custom User Command
         private void SendUserCommand(string rawCmd, bool autoChecksum = true)
         {
 
