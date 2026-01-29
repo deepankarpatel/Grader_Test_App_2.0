@@ -66,9 +66,21 @@ namespace Grader_Test_APP_v2._0
         // ================= Test Device TAB veriables =================
         //==============================================================
 
-        //globle variables
+        // Firmware upgrade variables
         private byte[] firmwareData;
-        private int _lastLoggedFwPercent = -1;
+        //private int _lastLoggedFwPercent = -1;
+
+        // Pause/Resume event for firmware upgrade
+        private ManualResetEventSlim _fwPauseEvent = new ManualResetEventSlim(true);
+        private volatile bool _fwIsPaused = false;
+        private volatile bool _fwIsUpgrading = false;
+
+        // Cancel support for firmware upgrade
+        private volatile bool _fwCancelRequested = false;
+
+        // Track firmware progress log position
+        private int _fwProgressLogStart = -1;
+        private int _fwProgressLogLength = 0;
 
         // Firmware constants
         const byte FW_TYPE_APP = 0xAA;
@@ -177,6 +189,7 @@ namespace Grader_Test_APP_v2._0
             if (serialport1.IsOpen)
                 serialport1.Close();
 
+            // Update UI elements on the main thread
             UI(() =>
             {
                 label_message.Text = "Device Disconnected";
@@ -186,6 +199,7 @@ namespace Grader_Test_APP_v2._0
                 button_glonass.BackColor = Color.FromArgb(50, 50, 50);
                 button_baidu.BackColor = Color.FromArgb(50, 50, 50);
 
+                // Reset UI elements
                 button_disconnect.Enabled = false;
                 button_disconnect.Visible = false;
                 button_connect.Enabled = true;
@@ -193,6 +207,7 @@ namespace Grader_Test_APP_v2._0
                 button_upgrade.Enabled = false;
                 button_refresh.Enabled = true;
                 button_browse_file.Enabled = false;
+                button_OTA_mode.Enabled = false;
                 comboBox_port.Enabled = true;
                 comboBox_baudrate.Enabled = true;
                 comboBox_device.Enabled = true;
@@ -200,6 +215,7 @@ namespace Grader_Test_APP_v2._0
                 lable_progressBar_Percentage.Visible = false;
                 progressBar.Value = 0;
 
+                // Reset file info state
                 label_binName.Text = "Name:";
                 label_binsize.Text = "Size:";
                 label_fwtype.Text = "Fwtype:";
@@ -225,6 +241,91 @@ namespace Grader_Test_APP_v2._0
 
         }
 
+        // Pause/Resume button on click
+        private void btn_pauseResume_Click(object sender, EventArgs e)
+        {
+            if (!_fwIsUpgrading)
+                return;
+
+            if (!_fwIsPaused)
+            {
+                _fwPauseEvent.Reset();   // BLOCK firmware thread
+                AppendLog($"Firmware Upgrade Pause at {lable_progressBar_Percentage.Text}", LogLevel.WARNING);
+                _fwIsPaused = true;
+                btn_pauseResume.Text = "Resume";
+                label_message.Text = "Firmware Upgrade Paused";
+                label_message.BackColor = Color.Yellow;
+                label_message.ForeColor = Color.Black;
+            }
+            else
+            {
+                _fwPauseEvent.Set();     // UNBLOCK firmware thread
+                _fwIsPaused = false;
+                AppendLog("Firmware Upgrade Resume", LogLevel.INFO);
+                btn_pauseResume.Text = "Pause";
+                label_message.Text = "Firmware Upgrade Resumed";
+                label_message.ForeColor = Color.White;
+                label_message.BackColor = Color.FromArgb(56, 106, 31);
+            }
+        }
+
+        // Cancel button on click
+        private void btn_cancel_Click(object sender, EventArgs e)
+        {
+            if (!_fwIsUpgrading)
+                return;
+
+            _fwCancelRequested = true;
+
+            // Make sure firmware thread is not stuck in pause
+            _fwPauseEvent.Set();
+            
+            label_message.Text = "Firmware upgrade canceled";
+            label_message.BackColor = ColorTranslator.FromHtml("#BA1A1A");
+
+            MessageBox.Show(
+                "Firmware upgrade canceled Please Restart the device.",
+                "",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
+            // Reset UI and state
+            progressBar.Value = 0;
+            lable_progressBar_Percentage.Text = "0%";
+            lable_dataPackets_Update.Text = "idle";
+
+            // Reset UI elements
+            button_OTA_mode.Enabled = false;
+            button_gnss_test.Enabled = true;
+            button_radio_test.Enabled = true;
+            button_constellation_test.Enabled = true;
+            button_base_config.Enabled = true;
+            button_rover_config.Enabled = true;
+            button_gallileo.Enabled = true;
+            button_glonass.Enabled = true;
+            button_baidu.Enabled = true;
+            button_saveLogs.Enabled = true;
+            btnCustomCommand.Enabled = true;
+            btn_clearLogs.Enabled = true;
+            btn_ResetDevice.Enabled = true;
+            btn_pauseResume.Enabled = false;
+            btn_cancel.Enabled = false;
+            button_disconnect.Enabled = true;
+
+            // Reset firmware upgrade state
+            label_binName.Text = "Name:";
+            label_binsize.Text = "Size:";
+            label_fwtype.Text = "Fwtype:";
+            label_filetype.Text = "FileType:";
+            label_fwID.Text = "FwID:";
+            label_fwLength.Text = "Fw Length:";
+            label_fwHeaderCRC.Text = "Fw Header CRC:";
+            label_FwCalculatedCRC.Text = "Fw Calculated CRC:";
+            label_BinStatus.Text = "Status:";
+            label_BinStatus.BackColor = Color.FromArgb(34, 34, 34);
+        }
+
         // Button refresh on click
         private void button_refresh_Click(object sender, EventArgs e)
         {
@@ -241,6 +342,7 @@ namespace Grader_Test_APP_v2._0
             });
         }
 
+        // Port comboBox drop down event
         private void comboBox_port_DropDown(object sender, EventArgs e)
         {
             refresh_port();
@@ -290,11 +392,12 @@ namespace Grader_Test_APP_v2._0
                     AttachRxHandler(); // attach data received handler
                     rtbLogs.Clear();
 
+                    // Set current test to Read UID
                     _currentTest = ActiveTest.ReadUid;
                     ReadUid();
                     AppendLog("Reading Device UID...", LogLevel.INFO);
 
-
+                    // Update UI elements on the main thread
                     UI(() =>
                     {
                         label_message.Text = "Device Connected";
@@ -311,10 +414,9 @@ namespace Grader_Test_APP_v2._0
                         comboBox_baudrate.Enabled = false;
                         comboBox_device.Enabled = false;
                     });
-
                 }
-
             }
+
             //Exception handling for port connection
             catch (UnauthorizedAccessException)
             {
@@ -342,259 +444,332 @@ namespace Grader_Test_APP_v2._0
         //send firmware function
         private bool send_firmware()
         {
-            // Reset last logged percent
-            _lastLoggedFwPercent = -1;
-            AppendLog("FIRMWARE UPGRADE STARTED", LogLevel.INFO); // log
-
-            // Load firmware data
-            if (firmwareData == null) return false;
-            // Firmware parameters
-            ushort fwId = 0x0001;
-
-            byte[] firmwarePayload = firmwareData;   // FULL BIN
-            uint fwLength = (uint)firmwarePayload.Length;
-
-            uint actualLength = (uint)firmwareData.Length;
-
-            if (fwLength != actualLength)
+            try
             {
-                UI(() => MessageBox.Show("Firmware length mismatch"));
-                return false;
-            }
+                // Ensure firmware is running (not paused)
+                _fwPauseEvent.Set();
+                _fwIsPaused = false;
 
-            // progress bar update
-            UpdateStatus("Starting firmware update...", 0);
-            progressBar.Value = 0;
+                // Reset progress log tracking
+                _fwProgressLogStart = -1;
+                _fwProgressLogLength = 0;
 
-            // Set current test to Firmware Upgrade
-            _currentTest = ActiveTest.FirmwareUpgrade;
+                // Clear cancel
+                _fwCancelRequested = false;
 
-            // HARD isolation
-            serialport1.DataReceived -= SerialPort_DataReceived;
-            serialport1.DiscardInBuffer();
-            serialport1.DiscardOutBuffer();
+                AppendLog("FIRMWARE UPGRADE STARTED", LogLevel.INFO); // log
 
-            // START PACKET
-            byte[] START_PACKET = { 0x24, 0x01, 0x01, 0x00, 0x00, 0x02, 0x23 };
-            serialport1.DiscardInBuffer();
+                // Load firmware data
+                if (firmwareData == null) return false;
 
-            //progress bar update
-            UpdateStatus("Sending START packet...", 0);
-            Application.DoEvents();
+                // Firmware parameters
+                ushort fwId = 0x0001;
 
-            AppendLog("Sending START packet", LogLevel.INFO); // log
+                byte[] firmwarePayload = firmwareData;   // FULL BIN
+                uint fwLength = (uint)firmwarePayload.Length;
 
-            // Send START packet
-            serialport1.Write(START_PACKET, 0, START_PACKET.Length);
+                uint actualLength = (uint)firmwareData.Length;
 
-            if (!WaitForUpdateResponse(5000))
-            {
-                UI(() => MessageBox.Show("START failed"));
-                AppendLog("START packet failed (No ACK)", LogLevel.ERROR); //log
-                reset();
-                return false;
-            }
-
-            // HEADER PACKET
-            ushort fwChk16 = CalculateCRC16(firmwareData);
-
-            // payload = FW_TYPE + FILE_TYPE + FW_ID + FW_LENGTH + FW_CHK16
-            List<byte> payload = new List<byte>();
-            payload.Add(FW_TYPE_APP);        // 0xAA
-            payload.Add(FW_FILE_BIN);        // 0x11
-            payload.Add((byte)(fwId >> 8));
-            payload.Add((byte)(fwId & 0xFF));
-            payload.Add((byte)(fwLength >> 24));
-            payload.Add((byte)(fwLength >> 16));
-            payload.Add((byte)(fwLength >> 8));
-            payload.Add((byte)(fwLength));
-            payload.Add((byte)(fwChk16 >> 8));
-            payload.Add((byte)(fwChk16 & 0xFF));
-
-            byte len = (byte)payload.Count; // MUST be 10
-
-            // checksum = CMD + LEN + sum(payload)
-            ushort checksum = 0;
-            checksum += 0x02;
-            checksum += len;
-            foreach (byte b in payload)
-                checksum += b;
-
-            // Construct HEADER packet
-            List<byte> headerPacket = new List<byte>();
-            headerPacket.Add(0x24);          // STX
-            headerPacket.Add(0x02);          // CMD
-            headerPacket.Add(len);           // LEN (1 byte)
-            headerPacket.AddRange(payload);  // DATA
-            headerPacket.Add((byte)(checksum >> 8));
-            headerPacket.Add((byte)(checksum & 0xFF));
-            headerPacket.Add(0x23);          // ETX
-
-            // progress bar update
-            UpdateStatus("Sending firmware header...", 0);
-            Application.DoEvents();
-            AppendLog("Sending HEADER packet", LogLevel.INFO); // log
-
-            // Send HEADER packet
-            serialport1.Write(headerPacket.ToArray(), 0, headerPacket.Count);
-
-            if (!WaitForUpdateResponse())
-            {
-                UI(() => MessageBox.Show("HEADER failed"));
-                AppendLog("HEADER packet failed (No ACK)", LogLevel.ERROR); // log
-                reset();
-                return false;
-            }
-
-            // DATA PACKETS
-            int offset = 0;
-            int CHUNK = 128;
-
-            while (offset < firmwareData.Length)
-            {
-                // Determine chunk size
-                int size = Math.Min(CHUNK, firmwareData.Length - offset);
-
-                // payload = CMD + LEN + DATA
-                List<byte> dataPayload = new List<byte>();
-                dataPayload.Add(0x03);          // CMD_DATA
-                dataPayload.Add((byte)size);    // LEN
-                dataPayload.AddRange(firmwareData.Skip(offset).Take(size));
-
-                // Calculate checksum
-                ushort dataChecksum = 0;
-                foreach (byte b in dataPayload)
-                    dataChecksum += b;
-
-                // Construct DATA packet
-                List<byte> dataPacket = new List<byte>();
-                dataPacket.Add(0x24);           // STX
-                dataPacket.AddRange(dataPayload);
-                dataPacket.Add((byte)(dataChecksum >> 8));
-                dataPacket.Add((byte)(dataChecksum & 0xFF));
-                dataPacket.Add(0x23);           // ETX
-
-                try
+                if (fwLength != actualLength)
                 {
-                    if (!serialport1.IsOpen)
-                        throw new IOException("Serial port closed");
-
-                    serialport1.Write(dataPacket.ToArray(), 0, dataPacket.Count);
-
-                    // Wait for ACK
-                    if (!WaitForUpdateResponse())
-                        throw new IOException("No ACK received");
+                    UI(() => MessageBox.Show("Firmware length mismatch"));
+                    return false;
                 }
-                catch (Exception)
-                {
 
-                    UI(() =>
-                    {
-                        MessageBox.Show(
-                            "Data Packet failure.\n\nPlease Restart the device and try again.",
-                            "Device Disconnected Or Power off",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning
-                        );
-                    });
-                    AppendLog($"Firmware data sent: {offset}%", LogLevel.INFO); //log
+                // progress bar update
+                UpdateStatus("Starting firmware update...", 0);
+                progressBar.Value = 0;
+
+                // Set current test to Firmware Upgrade
+                _currentTest = ActiveTest.FirmwareUpgrade;
+
+                // Detach data received handler during firmware upgrade
+                serialport1.DataReceived -= SerialPort_DataReceived;
+                serialport1.DiscardInBuffer();
+                serialport1.DiscardOutBuffer();
+
+                // START PACKET
+                byte[] START_PACKET = { 0x24, 0x01, 0x01, 0x00, 0x00, 0x02, 0x23 };
+                serialport1.DiscardInBuffer();
+
+                //progress bar update
+                UpdateStatus("Sending START packet...", 0);
+                Application.DoEvents();
+
+                AppendLog("Sending START packet", LogLevel.INFO); // log
+
+                // Send START packet
+                serialport1.Write(START_PACKET, 0, START_PACKET.Length);
+
+                if (!WaitForUpdateResponse(5000))
+                {
+                    UI(() => MessageBox.Show("START failed"));
+                    AppendLog("START packet failed (No ACK)", LogLevel.ERROR); //log
                     reset();
                     return false;
                 }
 
-                offset += size;
+                // HEADER PACKET
+                ushort fwChk16 = CalculateCRC16(firmwareData);
 
-                // Update progress every 1%
+                // payload = FW_TYPE + FILE_TYPE + FW_ID + FW_LENGTH + FW_CHK16
+                List<byte> payload = new List<byte>();
+                payload.Add(FW_TYPE_APP);        // 0xAA
+                payload.Add(FW_FILE_BIN);        // 0x11
+                payload.Add((byte)(fwId >> 8));
+                payload.Add((byte)(fwId & 0xFF));
+                payload.Add((byte)(fwLength >> 24));
+                payload.Add((byte)(fwLength >> 16));
+                payload.Add((byte)(fwLength >> 8));
+                payload.Add((byte)(fwLength));
+                payload.Add((byte)(fwChk16 >> 8));
+                payload.Add((byte)(fwChk16 & 0xFF));
+
+                byte len = (byte)payload.Count; // MUST be 10
+
+                // checksum = CMD + LEN + sum(payload)
+                ushort checksum = 0;
+                checksum += 0x02;
+                checksum += len;
+                foreach (byte b in payload)
+                    checksum += b;
+
+                // Construct HEADER packet
+                List<byte> headerPacket = new List<byte>();
+                headerPacket.Add(0x24);          // STX
+                headerPacket.Add(0x02);          // CMD
+                headerPacket.Add(len);           // LEN (1 byte)
+                headerPacket.AddRange(payload);  // DATA
+                headerPacket.Add((byte)(checksum >> 8));
+                headerPacket.Add((byte)(checksum & 0xFF));
+                headerPacket.Add(0x23);          // ETX
+
+                // progress bar update
+                UpdateStatus("Sending firmware header...", 0);
+                Application.DoEvents();
+                AppendLog("Sending HEADER packet", LogLevel.INFO); // log
+
+                // Send HEADER packet
+                serialport1.Write(headerPacket.ToArray(), 0, headerPacket.Count);
+
+                if (!WaitForUpdateResponse())
+                {
+                    UI(() => MessageBox.Show("HEADER failed"));
+                    AppendLog("HEADER packet failed (No ACK)", LogLevel.ERROR); // log
+                    reset();
+                    return false;
+                }
+
+                // DATA PACKETS
+                int offset = 0;
+                int CHUNK = 128;
+
+                while (offset < firmwareData.Length)
+                {
+                    // PAUSE GATE (SAFE PAUSE POINT)
+                    _fwPauseEvent.Wait();
+                    if (_fwCancelRequested)
+                        throw new OperationCanceledException("Firmware upgrade cancelled by user");
+
+                    // Determine chunk size
+                    int size = Math.Min(CHUNK, firmwareData.Length - offset);
+
+                    // payload = CMD + LEN + DATA
+                    List<byte> dataPayload = new List<byte>();
+                    dataPayload.Add(0x03);          // CMD_DATA
+                    dataPayload.Add((byte)size);    // LEN
+                    dataPayload.AddRange(firmwareData.Skip(offset).Take(size));
+
+                    // Calculate checksum
+                    ushort dataChecksum = 0;
+                    foreach (byte b in dataPayload)
+                        dataChecksum += b;
+
+                    // Construct DATA packet
+                    List<byte> dataPacket = new List<byte>();
+                    dataPacket.Add(0x24);           // STX
+                    dataPacket.AddRange(dataPayload);
+                    dataPacket.Add((byte)(dataChecksum >> 8));
+                    dataPacket.Add((byte)(dataChecksum & 0xFF));
+                    dataPacket.Add(0x23);           // ETX
+
+                    try
+                    {
+                        if (!serialport1.IsOpen)
+                            throw new IOException("Serial port closed");
+
+                        serialport1.Write(dataPacket.ToArray(), 0, dataPacket.Count);
+
+                        // Wait for ACK
+                        if (!WaitForUpdateResponse())
+                            throw new IOException("No ACK received");
+                    }
+                    catch (Exception)
+                    {
+                        UI(() =>
+                        {
+                            MessageBox.Show(
+                                "Data Packet failure.\n\nPlease Restart the device and try again.",
+                                "Device Disconnected Or Power off",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning
+                            );
+                        });
+                        AppendLog($"Firmware data sent: {offset}%", LogLevel.INFO); //log
+                        reset();
+                        return false;
+                    }
+
+                    offset += size;
+
+                    // Update progress every 1%
+                    UI(() =>
+                    {
+                        int percent = (int)(offset * 100 / firmwareData.Length);
+
+                        UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
+
+                        if (!_fwIsPaused)
+                        {
+                            UpdateFirmwareProgressLog(percent);
+                        }
+                    });
+
+                    Thread.Sleep(50);
+                }
+
+                //PAUSE GATE (SAFE PAUSE POINT)
+                if (_fwCancelRequested)
+                    throw new OperationCanceledException("Firmware upgrade cancelled by user");
+
+                //progress bar update
+                UpdateStatus("Finalizing update...", 100);
+                Application.DoEvents();
+
+                // END PACKET and UPDTATE PACKET
+                byte[] END_PACKET = { 0x24, 0x04, 0x01, 0x00, 0x00, 0x05, 0x23 };
+                byte[] UPDATE_PACKET = { 0x24, 0x05, 0x01, 0x00, 0x00, 0x06, 0x23 };
+
+                AppendLog("Sending END packet", LogLevel.INFO); // log
+
+                // Send END packet
+                serialport1.Write(END_PACKET, 0, END_PACKET.Length);
+                if (!WaitForUpdateResponse())
+                {
+                    UI(() => MessageBox.Show("END failed"));
+                    AppendLog("END packet failed (No ACK)", LogLevel.ERROR);
+                    reset();
+                    return false;
+                }
+
+                AppendLog("Sending UPDATE packet", LogLevel.INFO); // log
+                AppendLog("Finalizing Update...", LogLevel.INFO); // log
+
+                // Send UPDATE packet
+                serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
+                if (!WaitForUpdateResponse(40000))
+                {
+                    UI(() => MessageBox.Show("UPDATE failed"));
+                    AppendLog("UPDATE packet failed (Device did not reboot)", LogLevel.ERROR); // log
+                    reset();
+                    return false;
+                }
+
+                //progress bar update
+                UpdateStatus("Update complete", 100);
+                Application.DoEvents();
+
                 UI(() =>
                 {
-                    int percent = (int)(offset * 100 / firmwareData.Length);
-
-                    UpdateStatus($"Sending firmware data... ({offset}/{firmwareData.Length})", percent);
-
-                    // Log progress if percent changed
-                    if (!rtbLogs.Text.Contains("Sending firmware data:"))
-                    {
-                        AppendLog($"Sending firmware data:{percent}%", LogLevel.INFO); // log
-                    }
-                    else
-                    {
-                        rtbLogs.Text = System.Text.RegularExpressions.Regex.Replace(
-                         rtbLogs.Text,
-                            @"Sending firmware data:\d+%",
-                            $"Sending firmware data:{percent}%"
-                        );
-                    }
-
-                    _lastLoggedFwPercent = percent;
+                    // Final UI update
+                    lable_dataPackets_Update.Text = "Upgrade successful";
+                    lable_progressBar_Percentage.Text = "100%";
+                    MessageBox.Show(
+                        "Firmware upgrade completed successfully.",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
                 });
 
-                Thread.Sleep(50);
+                AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
+
+                // Confirming the update is done or no test is active
+                _currentTest = ActiveTest.None;
+
+                serialport1.DiscardInBuffer();
+                serialport1.DiscardOutBuffer();
+
+                AttachRxHandler(); // re-attach data received handler  
+                return true;
             }
-            //progress bar update
-            UpdateStatus("Finalizing update...", 100);
-            Application.DoEvents();
-
-            // END PACKET and UPDTATE PACKET
-            byte[] END_PACKET = { 0x24, 0x04, 0x01, 0x00, 0x00, 0x05, 0x23 };
-            byte[] UPDATE_PACKET = { 0x24, 0x05, 0x01, 0x00, 0x00, 0x06, 0x23 };
-
-            AppendLog("Sending END packet", LogLevel.INFO); // log
-
-            // Send END packet
-            serialport1.Write(END_PACKET, 0, END_PACKET.Length);
-            if (!WaitForUpdateResponse())
+            catch (OperationCanceledException)
             {
-                UI(() => MessageBox.Show("END failed"));
-                AppendLog("END packet failed (No ACK)", LogLevel.ERROR);
+                AppendLog("Firmware upgrade cancelled by user", LogLevel.WARNING);
+
+                UI(() =>
+                {
+                    label_message.Text = "Firmware Upgrade Cancelled";
+                });
+
+                _currentTest = ActiveTest.None;
+                AttachRxHandler();
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Firmware upgrade error: {ex.Message}", LogLevel.ERROR);
                 reset();
                 return false;
             }
+        }
 
-            AppendLog("Sending UPDATE packet", LogLevel.INFO); // log
-            AppendLog("Finalizing Update...", LogLevel.INFO); // log
-
-            // Send UPDATE packet
-            serialport1.Write(UPDATE_PACKET, 0, UPDATE_PACKET.Length);
-            if (!WaitForUpdateResponse(40000))
+        private void UpdateFirmwareProgressLog(int percent)
+        {
+            if (rtbLogs.InvokeRequired)
             {
-                UI(() => MessageBox.Show("UPDATE failed"));
-                AppendLog("UPDATE packet failed (Device did not reboot)", LogLevel.ERROR); // log
-                reset();
-                return false;
+                rtbLogs.Invoke(new Action(() => UpdateFirmwareProgressLog(percent)));
+                return;
             }
 
-            //progress bar update
-            UpdateStatus("Update complete", 100);
-            Application.DoEvents();
+            string line = $"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] INFO: Sending firmware data:{percent}%\n";
 
-            UI(() =>
+            // First time → append new line
+            if (_fwProgressLogStart < 0)
             {
-                // Final UI update
-                lable_dataPackets_Update.Text = "Upgrade successful";
-                lable_progressBar_Percentage.Text = "100%";
-                MessageBox.Show(
-                    "Firmware upgrade completed successfully.",
-                    "Success",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-            });
+                _fwProgressLogStart = rtbLogs.TextLength;
+                _fwProgressLogLength = line.Length;
 
-            AppendLog("FIRMWARE UPGRADE COMPLETED SUCCESSFULLY", LogLevel.INFO); // log
+                rtbLogs.SelectionStart = _fwProgressLogStart;
+                rtbLogs.SelectionLength = 0;
+                rtbLogs.SelectionColor = Color.FromArgb(19, 154, 14); // INFO green
+                rtbLogs.AppendText(line);
+            }
+            else
+            {
+                // Overwrite existing progress line
+                rtbLogs.SelectionStart = _fwProgressLogStart;
+                rtbLogs.SelectionLength = _fwProgressLogLength;
+                rtbLogs.SelectionColor = Color.FromArgb(19, 154, 14); // INFO green
+                rtbLogs.SelectedText = line;
 
-            // Confirming the update is done or no test is active
-            _currentTest = ActiveTest.None;
+                _fwProgressLogLength = line.Length;
+            }
 
-            serialport1.DiscardInBuffer();
-            serialport1.DiscardOutBuffer();
-
-            AttachRxHandler(); // re-attach data received handler  
-            return true;
+            rtbLogs.ScrollToCaret();
         }
 
         //upgrade button on click
         private async void button_upgrade_Click(object sender, EventArgs e)
         {
+
+            _fwIsUpgrading = true;
+            _fwIsPaused = false;
+            _fwCancelRequested = false;
+            _fwPauseEvent.Set();
+
+            btn_pauseResume.Text = "Pause";
 
             button_upgrade.Enabled = false;
             button_disconnect.Enabled = false;
@@ -608,8 +783,14 @@ namespace Grader_Test_APP_v2._0
             button_glonass.Enabled = false;
             button_baidu.Enabled = false;
             button_saveLogs.Enabled = false;
+            btnCustomCommand.Enabled = false;
+            btn_clearLogs.Enabled = false;
+            btn_ResetDevice.Enabled = false;
+            btn_pauseResume.Enabled = true;
+            btn_cancel.Enabled = true;
             lable_dataPackets_Update.Visible = true;
             lable_progressBar_Percentage.Visible = true;
+
 
             // Start firmware update in background
             bool updateSuccess = false;
@@ -637,6 +818,17 @@ namespace Grader_Test_APP_v2._0
                 button_glonass.Enabled = true;
                 button_baidu.Enabled = true;
                 button_saveLogs.Enabled = true;
+                btnCustomCommand.Enabled = true;
+                btn_clearLogs.Enabled = true;
+                btn_ResetDevice.Enabled = true;
+                btn_pauseResume.Enabled = false;
+                btn_cancel.Enabled = false;
+
+                _fwIsUpgrading = false;
+                _fwIsPaused = false;
+                _fwPauseEvent.Set();
+
+                btn_pauseResume.Text = "Start";
             }
         }
 
@@ -814,7 +1006,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             // rtbLogs.Clear();
-           // _radioStatusReceived = false;
+            // _radioStatusReceived = false;
             _currentTest = ActiveTest.Radio;
 
             AppendLog("RADIO TEST STARTED", LogLevel.INFO);
@@ -1399,7 +1591,7 @@ namespace Grader_Test_APP_v2._0
             // ensure clean RX state
             serialport1.DataReceived -= SerialPort_DataReceived;
             serialport1.DiscardInBuffer();
-        } 
+        }
 
         // append log function with log level colors
         private void AppendLog(string msg, LogLevel level)
@@ -1417,13 +1609,20 @@ namespace Grader_Test_APP_v2._0
                 LogLevel.ERROR => Color.Red,
                 _ => Color.White
             };
-            // Append log with timestamp and color
+
+            // Move caret to end safely
             rtbLogs.SelectionStart = rtbLogs.TextLength;
+            rtbLogs.SelectionLength = 0;   // 🔴 IMPORTANT: prevent overwrite
             rtbLogs.SelectionColor = c;
+
             rtbLogs.AppendText($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {level}: {msg}\n");
+
+            // Reset color to default to prevent color bleed
+            rtbLogs.SelectionColor = rtbLogs.ForeColor;
 
             rtbLogs.ScrollToCaret();
         }
+
 
         // Save logs to file button on click
         private void button_saveLogs_Click(object sender, EventArgs e)
@@ -1474,7 +1673,7 @@ namespace Grader_Test_APP_v2._0
         private void SendUserCommand(string rawCmd, bool autoChecksum = true)
         {
 
-          try
+            try
             {
                 // Block during firmware upgrade
                 if (_currentTest == ActiveTest.FirmwareUpgrade)
@@ -1484,7 +1683,7 @@ namespace Grader_Test_APP_v2._0
                 }
 
                 StopAllTests();
-                _currentTest = ActiveTest.Custom;   
+                _currentTest = ActiveTest.Custom;
                 AttachRxHandler();
 
                 string fullCmd = rawCmd.Trim();
@@ -1509,7 +1708,7 @@ namespace Grader_Test_APP_v2._0
             {
                 AppendLog("User command send failed: " + ex.Message, LogLevel.ERROR);
             }
-            
+
         }
 
         private string BuildCommandWithChecksum(string body)

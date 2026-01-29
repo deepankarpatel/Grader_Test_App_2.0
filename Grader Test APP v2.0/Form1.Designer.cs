@@ -55,6 +55,8 @@
             label_binName = new Label();
             button_browse_file = new Button();
             panel2 = new Panel();
+            btn_cancel = new Button();
+            btn_pauseResume = new Button();
             button_OTA_mode = new Button();
             lable_dataPackets_Update = new Label();
             lable_progressBar_Percentage = new Label();
@@ -63,8 +65,8 @@
             tabPage_test_device = new TabPage();
             panel4 = new Panel();
             btnCustomCommand = new Button();
-            button_ResetDevice = new Button();
-            button_clearLogs = new Button();
+            btn_ResetDevice = new Button();
+            btn_clearLogs = new Button();
             button_saveLogs = new Button();
             button_baidu = new Button();
             button_gallileo = new Button();
@@ -407,6 +409,8 @@
             // 
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel2.BackColor = Color.FromArgb(34, 34, 34);
+            panel2.Controls.Add(btn_cancel);
+            panel2.Controls.Add(btn_pauseResume);
             panel2.Controls.Add(button_OTA_mode);
             panel2.Controls.Add(lable_dataPackets_Update);
             panel2.Controls.Add(lable_progressBar_Percentage);
@@ -418,6 +422,36 @@
             panel2.Size = new Size(628, 322);
             panel2.TabIndex = 5;
             // 
+            // btn_cancel
+            // 
+            btn_cancel.BackColor = Color.FromArgb(46, 46, 40);
+            btn_cancel.Enabled = false;
+            btn_cancel.FlatStyle = FlatStyle.Popup;
+            btn_cancel.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            btn_cancel.ForeColor = Color.White;
+            btn_cancel.Location = new Point(352, 26);
+            btn_cancel.Name = "btn_cancel";
+            btn_cancel.Size = new Size(86, 35);
+            btn_cancel.TabIndex = 10;
+            btn_cancel.Text = "Cancel";
+            btn_cancel.UseVisualStyleBackColor = false;
+            btn_cancel.Click += btn_cancel_Click;
+            // 
+            // btn_pauseResume
+            // 
+            btn_pauseResume.BackColor = Color.FromArgb(46, 46, 40);
+            btn_pauseResume.Enabled = false;
+            btn_pauseResume.FlatStyle = FlatStyle.Popup;
+            btn_pauseResume.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
+            btn_pauseResume.ForeColor = Color.White;
+            btn_pauseResume.Location = new Point(216, 26);
+            btn_pauseResume.Name = "btn_pauseResume";
+            btn_pauseResume.Size = new Size(108, 35);
+            btn_pauseResume.TabIndex = 9;
+            btn_pauseResume.Text = "Pause/Resume";
+            btn_pauseResume.UseVisualStyleBackColor = false;
+            btn_pauseResume.Click += btn_pauseResume_Click;
+            // 
             // button_OTA_mode
             // 
             button_OTA_mode.BackColor = Color.FromArgb(46, 46, 40);
@@ -427,7 +461,7 @@
             button_OTA_mode.ForeColor = Color.Azure;
             button_OTA_mode.Location = new Point(17, 26);
             button_OTA_mode.Name = "button_OTA_mode";
-            button_OTA_mode.Size = new Size(172, 39);
+            button_OTA_mode.Size = new Size(172, 35);
             button_OTA_mode.TabIndex = 8;
             button_OTA_mode.Text = "Enter FW Upgrade Mode";
             button_OTA_mode.UseVisualStyleBackColor = false;
@@ -439,7 +473,7 @@
             lable_dataPackets_Update.BackColor = Color.Transparent;
             lable_dataPackets_Update.Font = new Font("Cascadia Code", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lable_dataPackets_Update.ForeColor = Color.White;
-            lable_dataPackets_Update.Location = new Point(15, 153);
+            lable_dataPackets_Update.Location = new Point(20, 180);
             lable_dataPackets_Update.Name = "lable_dataPackets_Update";
             lable_dataPackets_Update.Size = new Size(45, 20);
             lable_dataPackets_Update.TabIndex = 7;
@@ -448,11 +482,12 @@
             // 
             // lable_progressBar_Percentage
             // 
+            lable_progressBar_Percentage.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lable_progressBar_Percentage.AutoSize = true;
             lable_progressBar_Percentage.BackColor = Color.Transparent;
             lable_progressBar_Percentage.Font = new Font("Cascadia Code", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             lable_progressBar_Percentage.ForeColor = Color.Transparent;
-            lable_progressBar_Percentage.Location = new Point(580, 153);
+            lable_progressBar_Percentage.Location = new Point(581, 179);
             lable_progressBar_Percentage.Name = "lable_progressBar_Percentage";
             lable_progressBar_Percentage.Size = new Size(28, 21);
             lable_progressBar_Percentage.TabIndex = 6;
@@ -467,9 +502,9 @@
             button_upgrade.FlatStyle = FlatStyle.Popup;
             button_upgrade.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold);
             button_upgrade.ForeColor = Color.Azure;
-            button_upgrade.Location = new Point(246, 187);
+            button_upgrade.Location = new Point(246, 233);
             button_upgrade.Name = "button_upgrade";
-            button_upgrade.Size = new Size(137, 39);
+            button_upgrade.Size = new Size(137, 35);
             button_upgrade.TabIndex = 2;
             button_upgrade.Text = "Upgrade";
             button_upgrade.UseVisualStyleBackColor = false;
@@ -479,7 +514,7 @@
             // 
             progressBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.BackColor = Color.White;
-            progressBar.Location = new Point(17, 118);
+            progressBar.Location = new Point(17, 145);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(595, 32);
             progressBar.TabIndex = 5;
@@ -502,8 +537,8 @@
             panel4.BackColor = Color.FromArgb(34, 34, 34);
             panel4.BorderStyle = BorderStyle.FixedSingle;
             panel4.Controls.Add(btnCustomCommand);
-            panel4.Controls.Add(button_ResetDevice);
-            panel4.Controls.Add(button_clearLogs);
+            panel4.Controls.Add(btn_ResetDevice);
+            panel4.Controls.Add(btn_clearLogs);
             panel4.Controls.Add(button_saveLogs);
             panel4.Controls.Add(button_baidu);
             panel4.Controls.Add(button_gallileo);
@@ -534,35 +569,35 @@
             btnCustomCommand.UseVisualStyleBackColor = false;
             btnCustomCommand.Click += btnCustomCommand_Click_1;
             // 
-            // button_ResetDevice
+            // btn_ResetDevice
             // 
-            button_ResetDevice.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            button_ResetDevice.BackColor = Color.FromArgb(50, 50, 50);
-            button_ResetDevice.FlatStyle = FlatStyle.Flat;
-            button_ResetDevice.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            button_ResetDevice.ForeColor = Color.White;
-            button_ResetDevice.Location = new Point(114, 581);
-            button_ResetDevice.Name = "button_ResetDevice";
-            button_ResetDevice.Size = new Size(117, 45);
-            button_ResetDevice.TabIndex = 12;
-            button_ResetDevice.Text = "Reset Device";
-            button_ResetDevice.UseVisualStyleBackColor = false;
-            button_ResetDevice.Click += button_ResetDevice_Click;
+            btn_ResetDevice.Anchor = AnchorStyles.Bottom;
+            btn_ResetDevice.BackColor = Color.FromArgb(50, 50, 50);
+            btn_ResetDevice.FlatStyle = FlatStyle.Flat;
+            btn_ResetDevice.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btn_ResetDevice.ForeColor = Color.White;
+            btn_ResetDevice.Location = new Point(114, 581);
+            btn_ResetDevice.Name = "btn_ResetDevice";
+            btn_ResetDevice.Size = new Size(117, 45);
+            btn_ResetDevice.TabIndex = 12;
+            btn_ResetDevice.Text = "Reset Device";
+            btn_ResetDevice.UseVisualStyleBackColor = false;
+            btn_ResetDevice.Click += button_ResetDevice_Click;
             // 
-            // button_clearLogs
+            // btn_clearLogs
             // 
-            button_clearLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            button_clearLogs.BackColor = Color.FromArgb(50, 50, 50);
-            button_clearLogs.FlatStyle = FlatStyle.Flat;
-            button_clearLogs.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            button_clearLogs.ForeColor = Color.White;
-            button_clearLogs.Location = new Point(0, 581);
-            button_clearLogs.Name = "button_clearLogs";
-            button_clearLogs.Size = new Size(117, 45);
-            button_clearLogs.TabIndex = 11;
-            button_clearLogs.Text = "Clear Logs";
-            button_clearLogs.UseVisualStyleBackColor = false;
-            button_clearLogs.Click += button_clearLogs_Click;
+            btn_clearLogs.Anchor = AnchorStyles.Bottom;
+            btn_clearLogs.BackColor = Color.FromArgb(50, 50, 50);
+            btn_clearLogs.FlatStyle = FlatStyle.Flat;
+            btn_clearLogs.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btn_clearLogs.ForeColor = Color.White;
+            btn_clearLogs.Location = new Point(0, 581);
+            btn_clearLogs.Name = "btn_clearLogs";
+            btn_clearLogs.Size = new Size(117, 45);
+            btn_clearLogs.TabIndex = 11;
+            btn_clearLogs.Text = "Clear Logs";
+            btn_clearLogs.UseVisualStyleBackColor = false;
+            btn_clearLogs.Click += button_clearLogs_Click;
             // 
             // button_saveLogs
             // 
@@ -775,8 +810,10 @@
         private Button button_baidu;
         private Button button_gallileo;
         private Button button_glonass;
-        private Button button_clearLogs;
-        private Button button_ResetDevice;
+        private Button btn_clearLogs;
+        private Button btn_ResetDevice;
         private Button btnCustomCommand;
+        private Button btn_cancel;
+        private Button btn_pauseResume;
     }
 }
