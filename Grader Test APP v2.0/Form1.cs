@@ -279,7 +279,7 @@ namespace Grader_Test_APP_v2._0
 
             // Make sure firmware thread is not stuck in pause
             _fwPauseEvent.Set();
-            
+
             label_message.Text = "Firmware upgrade canceled";
             label_message.BackColor = ColorTranslator.FromHtml("#BA1A1A");
 
@@ -428,9 +428,25 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
+        private void UpdateDeviceInfoUI()
+        {
+            if (rtb_deviceInfo.InvokeRequired)
+            {
+                rtb_deviceInfo.Invoke(new Action(UpdateDeviceInfoUI));
+                return;
+            }
+
+            rtb_deviceInfo.Clear();
+
+            rtb_deviceInfo.AppendText($" Model: {_deviceModel}, ");
+            rtb_deviceInfo.AppendText($"UID: {_deviceUid}, ");
+            rtb_deviceInfo.AppendText($"Product ID: {_deviceProductId}");
+        }
+
         //button port disconnect on click
         private void button_disconnect_Click(object sender, EventArgs e)
         {
+            rtb_deviceInfo.Clear();
             reset();
         }
         //browse file button on click
@@ -725,6 +741,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
+        // function to update firmware progress log
         private void UpdateFirmwareProgressLog(int percent)
         {
             if (rtbLogs.InvokeRequired)
@@ -1377,11 +1394,13 @@ namespace Grader_Test_APP_v2._0
                                 break;
                             }
 
+
                             _deviceUid = f[2];
                             _deviceImei = f[3];
                             _deviceModel = f[4];
                             _deviceProductId = f[5];
 
+                            UpdateDeviceInfoUI();
                             LogConnectionInfo();
 
                             _currentTest = ActiveTest.None;
@@ -1563,6 +1582,7 @@ namespace Grader_Test_APP_v2._0
             AppendLog($"Device     : {comboBox_device.Text}", LogLevel.INFO);
             AppendLog($"Port       : {comboBox_port.Text}", LogLevel.INFO);
             AppendLog($"Baudrate   : {comboBox_baudrate.Text}", LogLevel.INFO);
+
 
             // show device info
             AppendLog($"UID        : {(string.IsNullOrWhiteSpace(_deviceUid) ? "Not Read" : _deviceUid)}",
