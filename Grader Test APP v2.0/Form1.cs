@@ -254,7 +254,7 @@ namespace Grader_Test_APP_v2._0
                 _fwIsPaused = true;
                 btn_pauseResume.Text = "Resume";
                 label_message.Text = "Firmware Upgrade Paused";
-                label_message.BackColor = Color.Yellow;
+                label_message.BackColor = Color.Orange;
                 label_message.ForeColor = Color.Black;
             }
             else
@@ -336,7 +336,7 @@ namespace Grader_Test_APP_v2._0
                 comboBox_baudrate.Text = "Select";
                 comboBox_device.Text = "Select";
                 label_message.Text = "Port Refreshed";
-                label_message.BackColor = Color.Yellow;
+                label_message.BackColor = Color.Orange;
                 label_message.ForeColor = Color.Black;
                 progressBar.Value = 0;
             });
@@ -447,6 +447,7 @@ namespace Grader_Test_APP_v2._0
         private void button_disconnect_Click(object sender, EventArgs e)
         {
             rtb_deviceInfo.Clear();
+            rtb_deviceInfo.Text = "Device Not Found";
             reset();
         }
         //browse file button on click
@@ -808,7 +809,6 @@ namespace Grader_Test_APP_v2._0
             lable_dataPackets_Update.Visible = true;
             lable_progressBar_Percentage.Visible = true;
 
-
             // Start firmware update in background
             bool updateSuccess = false;
 
@@ -968,8 +968,8 @@ namespace Grader_Test_APP_v2._0
                         label_fwHeaderCRC.Text = $"Fw Header CRC: N/A";
                         label_FwCalculatedCRC.Text = $"Fw Calculated CRC: 0x{calculatedCrc:X4}";
 
-                        label_BinStatus.Text = "Status: Firmware Loaded Enter Upgrade Mode to Upgrade firmware";
-                        label_BinStatus.BackColor = ColorTranslator.FromHtml("#2E7D32");
+                        label_BinStatus.Text = "Status: Firmware Loaded! Enter Upgrade Mode to Upgrade firmware";
+                        label_BinStatus.BackColor = Color.FromArgb(56, 106, 31);
                         label_BinStatus.ForeColor = Color.White;
 
                         button_OTA_mode.Enabled = true;
@@ -1746,3 +1746,4 @@ namespace Grader_Test_APP_v2._0
 }
 
 
+// disconnect button color (186, 26, 26)

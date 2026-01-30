@@ -32,6 +32,7 @@
             tab_all_components = new TabControl();
             tabPage_frimware = new TabPage();
             panel1 = new Panel();
+            pictureBox1 = new PictureBox();
             button_disconnect = new Button();
             label_message = new Label();
             label_device = new Label();
@@ -63,6 +64,7 @@
             button_upgrade = new Button();
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
+            pictureBox2 = new PictureBox();
             panel4 = new Panel();
             btnCustomCommand = new Button();
             btn_ResetDevice = new Button();
@@ -77,15 +79,15 @@
             button_radio_test = new Button();
             button_gnss_test = new Button();
             rtbLogs = new RichTextBox();
-            pictureBox1 = new PictureBox();
             tab_all_components.SuspendLayout();
             tabPage_frimware.SuspendLayout();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
             tabPage_test_device.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             panel4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // tab_all_components
@@ -135,9 +137,18 @@
             panel1.Size = new Size(350, 639);
             panel1.TabIndex = 7;
             // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
+            pictureBox1.Location = new Point(238, 28);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(113, 27);
+            pictureBox1.TabIndex = 7;
+            pictureBox1.TabStop = false;
+            // 
             // button_disconnect
             // 
-            button_disconnect.BackColor = Color.FromArgb(186, 26, 26);
+            button_disconnect.BackColor = Color.FromArgb(46, 46, 40);
             button_disconnect.BackgroundImageLayout = ImageLayout.None;
             button_disconnect.Dock = DockStyle.Bottom;
             button_disconnect.Enabled = false;
@@ -158,7 +169,7 @@
             label_message.BackColor = Color.FromArgb(186, 26, 26);
             label_message.BorderStyle = BorderStyle.Fixed3D;
             label_message.Dock = DockStyle.Top;
-            label_message.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label_message.Font = new Font("Consolas", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label_message.ForeColor = Color.White;
             label_message.Location = new Point(0, 0);
             label_message.Name = "label_message";
@@ -292,15 +303,16 @@
             // 
             // rtb_deviceInfo
             // 
-            rtb_deviceInfo.BackColor = Color.White;
+            rtb_deviceInfo.BackColor = SystemColors.HotTrack;
             rtb_deviceInfo.Dock = DockStyle.Top;
-            rtb_deviceInfo.ForeColor = Color.Black;
+            rtb_deviceInfo.Font = new Font("Consolas", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            rtb_deviceInfo.ForeColor = Color.White;
             rtb_deviceInfo.Location = new Point(0, 0);
             rtb_deviceInfo.Name = "rtb_deviceInfo";
             rtb_deviceInfo.ReadOnly = true;
             rtb_deviceInfo.Size = new Size(628, 25);
             rtb_deviceInfo.TabIndex = 11;
-            rtb_deviceInfo.Text = "";
+            rtb_deviceInfo.Text = "Device Not Found";
             // 
             // label_FwCalculatedCRC
             // 
@@ -364,12 +376,11 @@
             // 
             // label_BinStatus
             // 
-            label_BinStatus.AutoSize = true;
             label_BinStatus.Font = new Font("Consolas", 9.75F);
             label_BinStatus.ForeColor = Color.White;
             label_BinStatus.Location = new Point(20, 280);
             label_BinStatus.Name = "label_BinStatus";
-            label_BinStatus.Size = new Size(56, 15);
+            label_BinStatus.Size = new Size(450, 17);
             label_BinStatus.TabIndex = 4;
             label_BinStatus.Text = "Status:";
             // 
@@ -525,6 +536,7 @@
             // tabPage_test_device
             // 
             tabPage_test_device.BackColor = Color.White;
+            tabPage_test_device.Controls.Add(pictureBox2);
             tabPage_test_device.Controls.Add(panel4);
             tabPage_test_device.Controls.Add(rtbLogs);
             tabPage_test_device.Location = new Point(4, 29);
@@ -533,6 +545,16 @@
             tabPage_test_device.Size = new Size(990, 645);
             tabPage_test_device.TabIndex = 1;
             tabPage_test_device.Text = "Test Device";
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.BackColor = Color.FromArgb(17, 17, 17);
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(900, 12);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(78, 19);
+            pictureBox2.TabIndex = 14;
+            pictureBox2.TabStop = false;
             // 
             // panel4
             // 
@@ -741,15 +763,6 @@
             rtbLogs.TabIndex = 6;
             rtbLogs.Text = "";
             // 
-            // pictureBox1
-            // 
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(238, 28);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(113, 27);
-            pictureBox1.TabIndex = 7;
-            pictureBox1.TabStop = false;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -766,13 +779,14 @@
             tabPage_frimware.ResumeLayout(false);
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel3.ResumeLayout(false);
             panel3.PerformLayout();
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             tabPage_test_device.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             panel4.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
 
         }
@@ -826,7 +840,8 @@
         private Button btnCustomCommand;
         private Button btn_cancel;
         private Button btn_pauseResume;
-        private RichTextBox rtb_deviceInfo;
         private PictureBox pictureBox1;
+        private PictureBox pictureBox2;
+        private RichTextBox rtb_deviceInfo;
     }
 }
