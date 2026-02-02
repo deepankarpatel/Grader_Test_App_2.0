@@ -186,8 +186,8 @@ namespace Grader_Test_APP_v2._0
         // for software reset, Reset to start, close port, reset flags and progress bar
         void reset()
         {
-            if (serialport1.IsOpen)
-                serialport1.Close();
+             if (serialport1.IsOpen)
+                  serialport1.Close();
 
             // Update UI elements on the main thread
             UI(() =>
@@ -206,6 +206,8 @@ namespace Grader_Test_APP_v2._0
                 button_connect.Visible = true;
                 button_upgrade.Enabled = false;
                 button_refresh.Enabled = true;
+                btn_cancel.Enabled = false;
+                btn_pauseResume.Enabled = false;
                 button_browse_file.Enabled = false;
                 button_OTA_mode.Enabled = false;
                 comboBox_port.Enabled = true;
@@ -254,8 +256,8 @@ namespace Grader_Test_APP_v2._0
                 _fwIsPaused = true;
                 btn_pauseResume.Text = "Resume";
                 label_message.Text = "Firmware Upgrade Paused";
-                label_message.BackColor = Color.Orange;
-                label_message.ForeColor = Color.Black;
+                label_message.BackColor = ColorTranslator.FromHtml("#FF5F15");
+                label_message.ForeColor = Color.White;
             }
             else
             {
@@ -312,6 +314,7 @@ namespace Grader_Test_APP_v2._0
             btn_pauseResume.Enabled = false;
             btn_cancel.Enabled = false;
             button_disconnect.Enabled = true;
+            button_browse_file.Enabled = true;
 
             // Reset firmware upgrade state
             label_binName.Text = "Name:";
@@ -809,6 +812,10 @@ namespace Grader_Test_APP_v2._0
             lable_dataPackets_Update.Visible = true;
             lable_progressBar_Percentage.Visible = true;
 
+            label_message.Text = "Firmware Upgrade Started";
+            label_message.ForeColor = Color.White;
+            label_message.BackColor = Color.FromArgb(56, 106, 31);
+
             // Start firmware update in background
             bool updateSuccess = false;
 
@@ -840,12 +847,26 @@ namespace Grader_Test_APP_v2._0
                 btn_ResetDevice.Enabled = true;
                 btn_pauseResume.Enabled = false;
                 btn_cancel.Enabled = false;
+                button_browse_file.Enabled = true;
+
+                label_message.Text = "Firmware Upgrade Complete";
+                label_message.BackColor = Color.FromArgb(56, 106, 31);
+
+                // Reset firmware upgrade state
+                label_binName.Text = "Name:";
+                label_binsize.Text = "Size:";
+                label_fwtype.Text = "Fwtype:";
+                label_filetype.Text = "FileType:";
+                label_fwID.Text = "FwID:";
+                label_fwLength.Text = "Fw Length:";
+                label_fwHeaderCRC.Text = "Fw Header CRC:";
+                label_FwCalculatedCRC.Text = "Fw Calculated CRC:";
+                label_BinStatus.Text = "Status:";
+                label_BinStatus.BackColor = Color.FromArgb(34, 34, 34);
 
                 _fwIsUpgrading = false;
                 _fwIsPaused = false;
                 _fwPauseEvent.Set();
-
-                btn_pauseResume.Text = "Start";
             }
         }
 

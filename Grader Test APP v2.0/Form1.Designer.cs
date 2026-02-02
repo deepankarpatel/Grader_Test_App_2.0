@@ -64,7 +64,6 @@
             button_upgrade = new Button();
             progressBar = new ProgressBar();
             tabPage_test_device = new TabPage();
-            pictureBox2 = new PictureBox();
             panel4 = new Panel();
             btnCustomCommand = new Button();
             btn_ResetDevice = new Button();
@@ -86,7 +85,6 @@
             panel3.SuspendLayout();
             panel2.SuspendLayout();
             tabPage_test_device.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             panel4.SuspendLayout();
             SuspendLayout();
             // 
@@ -168,12 +166,11 @@
             // 
             label_message.BackColor = Color.FromArgb(186, 26, 26);
             label_message.BorderStyle = BorderStyle.Fixed3D;
-            label_message.Dock = DockStyle.Top;
             label_message.Font = new Font("Consolas", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label_message.ForeColor = Color.White;
             label_message.Location = new Point(0, 0);
             label_message.Name = "label_message";
-            label_message.Size = new Size(350, 25);
+            label_message.Size = new Size(351, 25);
             label_message.TabIndex = 5;
             label_message.Text = "Disconnected";
             // 
@@ -304,13 +301,12 @@
             // rtb_deviceInfo
             // 
             rtb_deviceInfo.BackColor = SystemColors.HotTrack;
-            rtb_deviceInfo.Dock = DockStyle.Top;
             rtb_deviceInfo.Font = new Font("Consolas", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             rtb_deviceInfo.ForeColor = Color.White;
             rtb_deviceInfo.Location = new Point(0, 0);
             rtb_deviceInfo.Name = "rtb_deviceInfo";
             rtb_deviceInfo.ReadOnly = true;
-            rtb_deviceInfo.Size = new Size(628, 25);
+            rtb_deviceInfo.Size = new Size(630, 25);
             rtb_deviceInfo.TabIndex = 11;
             rtb_deviceInfo.Text = "Device Not Found";
             // 
@@ -536,7 +532,6 @@
             // tabPage_test_device
             // 
             tabPage_test_device.BackColor = Color.White;
-            tabPage_test_device.Controls.Add(pictureBox2);
             tabPage_test_device.Controls.Add(panel4);
             tabPage_test_device.Controls.Add(rtbLogs);
             tabPage_test_device.Location = new Point(4, 29);
@@ -545,16 +540,6 @@
             tabPage_test_device.Size = new Size(990, 645);
             tabPage_test_device.TabIndex = 1;
             tabPage_test_device.Text = "Test Device";
-            // 
-            // pictureBox2
-            // 
-            pictureBox2.BackColor = Color.FromArgb(17, 17, 17);
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(900, 12);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(78, 19);
-            pictureBox2.TabIndex = 14;
-            pictureBox2.TabStop = false;
             // 
             // panel4
             // 
@@ -785,7 +770,6 @@
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             tabPage_test_device.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             panel4.ResumeLayout(false);
             ResumeLayout(false);
 
@@ -841,7 +825,6 @@
         private Button btn_cancel;
         private Button btn_pauseResume;
         private PictureBox pictureBox1;
-        private PictureBox pictureBox2;
         private RichTextBox rtb_deviceInfo;
     }
 }
