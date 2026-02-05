@@ -19,11 +19,11 @@ namespace Grader_Test_APP_v2._0
         private readonly StringBuilder _rxBuffer = new StringBuilder();
 
         // Flags to track test state
-        //private bool _deviceStatusReceived = false;
-        //private bool _radioStatusReceived = false;
-        //private bool _constellationStausRecieved = false;
-        //private bool _configBaseStatusReceived = false;
-        //private bool _configRoverStatusReceived = false;
+        private bool _deviceStatusReceived = false;
+        private bool _radioStatusReceived = false;
+        private bool _constellationStausRecieved = false;
+        private bool _configBaseStatusReceived = false;
+        private bool _configRoverStatusReceived = false;
         //private bool _TestRunning = false;
         private bool _galileoEnabled = false;
         private bool _glonassEnabled = false;
@@ -198,8 +198,7 @@ namespace Grader_Test_APP_v2._0
                 button_gallileo.BackColor = Color.FromArgb(50, 50, 50);
                 button_glonass.BackColor = Color.FromArgb(50, 50, 50);
                 button_baidu.BackColor = Color.FromArgb(50, 50, 50);
-
-                // Reset UI elements
+ 
                 button_disconnect.Enabled = false;
                 button_disconnect.Visible = false;
                 button_connect.Enabled = true;
@@ -240,6 +239,7 @@ namespace Grader_Test_APP_v2._0
             //Sending command to device To enter in OTA Mode
             String command = "#42,1,0*07\r\n";
             serialport1.Write(command);
+            button_upgrade.Enabled = true;
 
         }
 
@@ -458,7 +458,7 @@ namespace Grader_Test_APP_v2._0
         {
             firmwareData = LoadFirmwareFromFile();
 
-            button_upgrade.Enabled = firmwareData != null;
+            button_OTA_mode.Enabled = firmwareData != null;
         }
 
         //send firmware function
@@ -632,10 +632,12 @@ namespace Grader_Test_APP_v2._0
                                 "Data Packet failure.\n\nPlease Restart the device and try again.",
                                 "Device Disconnected Or Power off",
                                 MessageBoxButtons.OK,
-                                MessageBoxIcon.Warning
+                                MessageBoxIcon.Error
+                                
                             );
+                            AppendLog("Data Packet Failure", LogLevel.ERROR); //log
                         });
-                        AppendLog($"Firmware data sent: {offset}%", LogLevel.INFO); //log
+                        
                         reset();
                         return false;
                     }
@@ -938,7 +940,7 @@ namespace Grader_Test_APP_v2._0
                 "Serial port closed\n\nPlease restart the device and try again.",
                 "Device disconnected.",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Warning
+                MessageBoxIcon.Error
             ));
 
             reset();
@@ -972,14 +974,15 @@ namespace Grader_Test_APP_v2._0
                     uint fwLength = (uint)firmware.Length;
                     ushort calculatedCrc = CalculateCRC16(firmware);
 
-                    byte fwType = FW_TYPE_APP;     // from constants
+                    byte fwType = FW_TYPE_APP;    // from constants
                     byte fileType = FW_FILE_BIN;  // from constants
-                    ushort fwId = 0x0001;          // from app/versioning
+                    ushort fwId = 0x0001;         // from app/versioning
 
                     UI(() =>
                     {
                         // Update UI with firmware info
                         label_binName.Text = $"Name: {info.Name}";
+                        
                         label_binsize.Text = $"Size: {fwLength / 1024.0:N2} kB";
 
                         label_fwtype.Text = $"Fwtype: 0x{fwType:X2}";
@@ -993,7 +996,9 @@ namespace Grader_Test_APP_v2._0
                         label_BinStatus.BackColor = Color.FromArgb(56, 106, 31);
                         label_BinStatus.ForeColor = Color.White;
 
-                        button_OTA_mode.Enabled = true;
+                        AppendLog($"Firmware '{info.Name}' loaded", LogLevel.INFO);
+                        AppendLog($"Size {fwLength} bytes", LogLevel.INFO);
+
                     });
 
                     return firmware;
@@ -1028,7 +1033,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             // rtbLogs.Clear();
-            //_deviceStatusReceived = false;
+            _deviceStatusReceived = false;
             _currentTest = ActiveTest.GNSS;
 
             AppendLog("GNSS TEST STARTED", LogLevel.INFO);
@@ -1044,7 +1049,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             // rtbLogs.Clear();
-            // _radioStatusReceived = false;
+            _radioStatusReceived = false;
             _currentTest = ActiveTest.Radio;
 
             AppendLog("RADIO TEST STARTED", LogLevel.INFO);
@@ -1059,7 +1064,7 @@ namespace Grader_Test_APP_v2._0
             StopAllTests();
             AttachRxHandler();
             //  rtbLogs.Clear();
-            //_constellationStausRecieved = false;
+            _constellationStausRecieved = false;
             _currentTest = ActiveTest.Constellation;
 
             AppendLog("CONSTELLATION TEST STARTED", LogLevel.INFO);
@@ -1073,7 +1078,7 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
             StopAllTests();
             AttachRxHandler();
-            //_configBaseStatusReceived = false;
+            _configBaseStatusReceived = false;
             _currentTest = ActiveTest.ConfigBase;
             ConfigureBaseCommand();
         }
@@ -1084,7 +1089,7 @@ namespace Grader_Test_APP_v2._0
             if (!EnsurePortOpen()) return;
             StopAllTests();
             AttachRxHandler();
-            //_configRoverStatusReceived = false;
+            _configRoverStatusReceived = false;
             _currentTest = ActiveTest.ConfigRover;
             ConfigureRoverCommand();
         }
@@ -1252,7 +1257,7 @@ namespace Grader_Test_APP_v2._0
         {
             try
             {
-                serialport1.DiscardInBuffer();
+                serialport1.DiscardInBuffer();  
                 serialport1.DiscardOutBuffer();
                 serialport1.Write(cmd);
                 AppendLog(logText, LogLevel.INFO);
@@ -1338,43 +1343,43 @@ namespace Grader_Test_APP_v2._0
                 switch (cmd)
                 {
                     case 6: // GNSS Status
-                        if (_currentTest == ActiveTest.GNSS) //&& !_deviceStatusReceived)
+                        if (_currentTest == ActiveTest.GNSS && !_deviceStatusReceived)
                         {
                             ShowDeviceStatus(f);
-                            //_deviceStatusReceived = true;
+                            _deviceStatusReceived = true;
                             _currentTest = ActiveTest.None; // stop GNSS test
                             AppendLog("GNSS STATUS RECEIVED", LogLevel.INFO);
                         }
                         break;
 
                     case 9: // Radio Status
-                        if (_currentTest == ActiveTest.Radio) //&& !_radioStatusReceived)
+                        if (_currentTest == ActiveTest.Radio && !_radioStatusReceived)
                         {
                             ShowRadioStatus(f);
-                            //_radioStatusReceived = true;
+                            _radioStatusReceived = true;
                             _currentTest = ActiveTest.None; // stop Radio test
                             AppendLog("RADIO STATUS RECEIVED", LogLevel.INFO);
                         }
                         break;
 
                     case 12: // Constellation Status
-                        if (_currentTest == ActiveTest.Constellation) // && !_constellationStausRecieved)
+                        if (_currentTest == ActiveTest.Constellation  && !_constellationStausRecieved)
                         {
                             ShowConstellationStatus(f);
-                            //_constellationStausRecieved = true;
+                            _constellationStausRecieved = true;
                             _currentTest = ActiveTest.None; // stop Constellation test
                             AppendLog("CONSTELLATION STATUS RECEIVED", LogLevel.INFO);
                         }
                         break;
 
                     case 2: // Config Base ACK
-                        //_configBaseStatusReceived = true;
+                        _configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop Config Base test
                         AppendLog("BASE CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
 
                     case 3: // Config Rover ACK
-                        //_configBaseStatusReceived = true;
+                        _configBaseStatusReceived = true;
                         _currentTest = ActiveTest.None; // stop config Rover test
                         AppendLog("Rover CONFIGURATION ACK RECEIVED", LogLevel.INFO);
                         break;
@@ -1574,9 +1579,9 @@ namespace Grader_Test_APP_v2._0
                 return;
             }
             // Parse constellation statuses
-            bool galileo = f[2] == "";
-            bool glonass = f[3] == "";
-            bool beidou = f[4] == "";
+            bool galileo = f[2] == "1";
+            bool glonass = f[3] == "1";
+            bool beidou = f[4] == "1";
 
             _galileoEnabled = galileo;
             _glonassEnabled = glonass;
@@ -1651,9 +1656,9 @@ namespace Grader_Test_APP_v2._0
                 _ => Color.White
             };
 
-            // Move caret to end safely
+            // Set selection to end
             rtbLogs.SelectionStart = rtbLogs.TextLength;
-            rtbLogs.SelectionLength = 0;   // 🔴 IMPORTANT: prevent overwrite
+            rtbLogs.SelectionLength = 0;   // prevent overwrite
             rtbLogs.SelectionColor = c;
 
             rtbLogs.AppendText($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {level}: {msg}\n");
@@ -1678,9 +1683,11 @@ namespace Grader_Test_APP_v2._0
             {
                 string folder = Path.Combine(Application.StartupPath, "Logs");
 
+                // Create Logs folder if not exists
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
+                // Create unique filename
                 string fileName = $"{_deviceModel}_{_deviceUid}_{DateTime.Now:ddMMyyyy_HHmmss}.txt";
                 string fullPath = Path.Combine(folder, fileName);
 
@@ -1694,6 +1701,7 @@ namespace Grader_Test_APP_v2._0
             }
         }
 
+        // Custom Command button on click
         private void btnCustomCommand_Click_1(object sender, EventArgs e)
         {
             if (!EnsurePortOpen()) return;
@@ -1717,11 +1725,11 @@ namespace Grader_Test_APP_v2._0
             try
             {
                 // Block during firmware upgrade
-                if (_currentTest == ActiveTest.FirmwareUpgrade)
-                {
-                    AppendLog("Cannot send custom command during firmware upgrade", LogLevel.WARNING);
-                    return;
-                }
+               // if (_currentTest == ActiveTest.FirmwareUpgrade)
+               // {
+                //    AppendLog("Cannot send custom command during firmware upgrade", LogLevel.WARNING);
+             //       return;
+             //   }
 
                 StopAllTests();
                 _currentTest = ActiveTest.Custom;
@@ -1752,6 +1760,7 @@ namespace Grader_Test_APP_v2._0
 
         }
 
+        // Build command with checksum function
         private string BuildCommandWithChecksum(string body)
         {
             int cs = 0;
